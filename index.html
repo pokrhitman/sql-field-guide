@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<hmtl lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL Field Guide</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0;}
+
+        body {
+            font-family: sans-serif;
+            font-size: 15px;
+            color: #222;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* -- Header -- */
+        header {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        header h1 { font-size: 18px; font-weight: 500;}
+        header a  { color: #aac4ff; font-size: 13px; text-decoration: none; }
+        header a:hover {text-decoration: underline; }
+
+        /* -- Body: sidebar + content -- */
+        .layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* -- Sidebar -- */
+        nav {
+            width: 240px;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            flex-shrink: 0;
+            padding: 16 px 0;
+        }
+
+        /* Tier buttons - Beginner / Intermediate / Advanced */
+        .tier-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .tier-btn:hover { background: #e8e8e8; }
+
+        /*Category label inside an open tier */
+        .category-label {
+            padding: 6px 16px 2px 24px;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /*Individual topic links */
+        .topic-link {
+            display: block;
+            padding: 6px 16px 6px 32px;
+            font-size: 13px;
+            color: #333;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+        .topic-link:hover { background: #e0e0e0; }
+        .topic-link:active {
+            border-left-color: #1a1a2e;
+            background-color: #e8eaf6;
+            font-weight: 500;
+        }
+
+        /* Collapsible tier sections */
+        .tier-section { display: none }
+        .tier-section.open { display: block; }
+
+        /* -- Content area -- */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 48px;
+            max-width: 860px;
+        }
+
+        main h2 { font-size: 22px; font-weight: 500; margin-bottom: 12px; }
+        main h3 { font-size: 16px; font-weight: 500; margin: 24px 0 8px; }
+        main p { line-height: 1.7; color: #444; margin-bottom: 12px;}
+
+        .tag {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #3c3c8e;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin: 2px 4px 2px 0;
+        }
+
+        .notice {
+            background: #fff8e1;
+            border-left: 4px solid #f9a825;
+            padding: 12px 16px;
+            font-size: #555;
+            margin: 24px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<! -- Header -- >
+<header>
+    <h1>SQL Field Guide</h1>
+    <a href="https://github.com/pokrhitman/sql-field-guide" target="_blank">GitHub</a>
+</header>
+
+<div class="layout">
+
+    <! -- Sidebar -- >
+    <nav>
+
+        <! -- Beginner -- >
+        <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Begginer</button>
+        <div class="tier-section" id="tier-beginner">
+            <div class="category-label">Coming soon</div>
+        </div>
+
+        <! -- Intermediate -- >
+        <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
+        <div class="tier-section open" id="tier-intermediate">
+            <div class="category-label">Transactions &amp; Concurrency</div>
+            <a class="topic-link" href="topics/intermediate/isolation-levels/index.html">
+                Isolation Levels
+            </a>
+        </div>
+
+        <! --  Advanced -- >
+        <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
+        <div class="tier-section" id="tier-advanced">
+            <div class="category-label">Coming soon</div>
+        </div>
+
+    </nav>
+
+    <! -- Welcome content -- >
+    <main>
+        <h2>Welcome to the SQL Field Guide</h2>
+
+        <p>This is a community-built reference guide for SQL learners who have
+            some coursework or hands-on experience and want clearer mental models
+            for the concepts that textbooks or online courses tend to move past
+            too quickly.
+        </p>
+
+        <div class="notice">
+            <strong>Work in progress</strong> This guide started as a personal
+            study tool and is actively being developed. Content is added topic
+            by topic. If something is missing, incomplete or could be explained
+            more clearly, contributions are welcome. 
+        </div>
+
+        <h3>Who is this for</h3>
+        <p>
+            <span class="tag">Beginner</span> Students in the first SQL courses
+            or those building foundational knowledge. No prior database experience
+            assumed.
+        </p>
+        <p>
+            <span class="tag">Intermediate</span> Learners who can write SQL 
+            confidently but want to understand what the database engine is doing:
+            transactions, locking, joins and query behavior. Suitable for 
+            coursework, college studies and early professional work.
+        </p>
+        <p>
+            <span class="tag">Advanced</span> Practitioners who use SQL
+            professionally and want to go deeper into performance, Concurrency
+            patterns and query optmisation.
+        </p>
+
+        <h3>How to use this field guide</h3>
+        <p>
+            Use the sidebar to the left to find a topic. Each topic page has three sections:
+        </p>
+        <p>
+            <strong>Explainer</strong> - the mental mode and plain-English 
+            reasoning behind the concept.
+        </p>
+        <p>
+            <strong>Interactive</strong> - a hands-on widget to explore the concept
+            yourself.
+        </p>
+        <p>
+            <strong>Reference</strong> - a compact cheat sheet to return to after
+            you understand the topic.
+        </p>
+
+        <h3>Limitations</h3>
+        <p>
+            This guide focuses on <strong>Microsoft SQL Server and T-SQL</strong>
+            unless otherwise noted. Examples may not transfer directly to MySQL,
+            PostgreSQL or other dialects without adjustment. Where behavior
+            differs significantly between databases, a note is included.
+        </p>
+    </main>
+
+    </div>
+
+    <script>
+        function toggleTier(id) {
+            const section = document.getElementById('tier-' + id);
+            section.classList.toggle('open');
+
+            //Update the arrows on the button
+            const buttons = document.querySelectorAll('.tier-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick') === "toggleTier('" + id + "')") {
+                    const isOpen = section.classList.contains('open');
+                    btn.textContent = (isOpen ? '\u25BC' : '\u25BA') + ' ' +
+                    btn.textContent.slice(2);
+                }
+            });
+        }
+
+    // Mark the active topic link based on the current URL
+    const links = document.querySelectorAll('.topic-link');
+    links.forEach(link => {
+        if (link.href === window.location.href) {
+            link.classList.add('active');
+        }
+    });
+    </script>
+
+</body> 
+</hmtl>

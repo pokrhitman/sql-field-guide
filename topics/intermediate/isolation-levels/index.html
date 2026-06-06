@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Isolation Levels - SQL Field Guide</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: sans-serif;
+            font-size: 15px;
+            color: #222;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* -- Header -- */
+        header {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        header h1 { font-size: 18px; font-weight: 500;}
+        header a { color: #aac4ff; font-size: 13px; text-decoration: none; }
+        header a:hover { text-decoration: underline; }
+
+        /* -- Body -- */
+        .layout { display: flex; flex: 1; overflow: hidden; }
+
+        /* -- Sidebar -- */
+        nav {
+            width: 240px;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            flex-shrink: 0;
+            padding: 16px 0;
+        }
+        .tier-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .tier-btn:hover {background: #e8e8e8; }
+        .category-label {
+            padding: 6px 16px 2px 24px;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .topic-link {
+            display: block;
+            padding: 6px 16px 6px 32px;
+            font-size: 13px;
+            color: #333;
+            text-decoration: none;
+            border-left: 3px solid transparent;
+        }
+        .topic-link:hover {background: #e0e0e0; }
+        .topic-link.active {
+            border-left-color: #1a1a2e;
+            background: #e8eaf6;
+            font-weight: 500;
+        }
+        .tier-section { display: none; }
+        .tier-section.open { display: block;}
+
+        /* -- Content area -- */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 48px;
+            max-width: 860px;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 16px;
+        }
+        .breadcrumb a { color: #888; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* Topic header */
+        main h2 { font-size: 22px; font-weight: 500; margin-bottom: 6px; }
+        main h3 { font-size: 16px; font-weight: 500; margin: 24px 0 8px; }
+        main p { line-height: 1.7; color: #444; margin-bottom: 12px; }
+
+        .prereq {
+            background: #f0f4ff;
+            border-left: 4px solid #5c6bc0;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #444;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* -- Tab switcher -- */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 28px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #888;
+            cursor: pointer;
+        }
+        .tab-btn:hover { color: #333; }
+        .tab-btn.active {
+            color: #1a1a2e;
+            border-bottom-color: #1a1a2e;
+        }
+
+        /* Tab panels */
+        .tab-panel { display: none;}
+        .tab-panel.active { display: block; }
+
+        /* Explainer styles */
+        .concept-block {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+        .concept-block h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #1a1a2e; }
+        .concept-block p { font-size: 13px; margin-bottom: 0; }
+
+        /* -- Interactive styles -- */
+        .iso-btn {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 7px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            margin: 0 6px 8px 0;
+        }
+        .iso-btn:hover { background: #e0e0e0; }
+        .iso-btn.active {
+            background: #e8eaf6;
+            border-color: #5c6bc0;
+            color: #1a1a2e;
+            font-weight: 500;
+        }
+        .detail-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            background: #fff;
+        }
+        .detail-card h4 { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+        .detail-card code {
+            font-size: 12px;
+            color: #666;
+            font-family: monospace;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .detail-card p { font-size: 13px; margin-bottom: 10px; }
+        .pill {
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin: 2px 4px 2px 0;
+        }
+        .pill-safe { background: #e8f5e9; color: #2e7d32; }
+        .pill-risk { background: #ffebee; color: #c62828; }
+        .scenario-box {
+            background: #f5f5f5;
+            border-radius: 4px;
+            padding: 12px 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+            margin-top: 10px;
+        }
+
+        /* -- Reference styles -- */
+        .ref-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            background: #fff;
+        }
+        .ref-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+        .ref-card code {
+            font-family: monospace;
+            font-size: 12px;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .ref-card p { font-size: 13px; margin-bottom: 6px; color: #444; }
+        .tag {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #3c3c8e;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin: 2px 3px 2px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!--- Header --->
+    <header>
+        <h1>SQL Field Guide</h1>
+        <a href="../../../index.html" style="margin-left: 24px;">&#8592; Home</a>
+    </header>
+
+    <div class="layout">
+
+        <!--- Sidebar --->
+        <nav>
+            <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Beginner</button>
+            <div class="tier-section" id="tier-beginner">
+                <div class="category-label">Coming soon</div>
+            </div>
+
+            <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
+            <div class="tier-section open" id="tier-intermediate">
+                <div class="category-label">Transactions &amp; Concurrency</div>
+                <a class="topic-link active" href="index.html">Isolation Levels</a>
+            </div>
+
+            <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
+            <div class="tier-section" id="tier-advanced">
+                <div class="category-label">Coming soon</div>
+            </div>
+        </nav>
+
+    <!--- Main content --->
+    <main>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="../../../index.html">Home</a> &rsaquo;
+            Intermediate &rsaquo;
+            Transactions &amp; Concurrency &rsaquo;
+            Isolation Levels
+        </div>
+
+        <h2>Isolation Levels</h2>
+
+        <div class="prereq">
+            <strong>Before this topic:</strong> you should be comfortable writing
+            basic SELECT queries and understand what a transaction is - that a
+            BEGIN / COMMIT block is a unit of work that either fully succeeds or
+            fully rolls back.
+        </div>
+
+        <!-- Tab switcher -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('explainer')">Explainer</button>
+            <button class="tab-btn"        onclick="switchTab('interactive')">Interactive</button>
+            <button class="tab-btn"        onclick="switchTab('reference')">Reference</button>
+        </div>
+
+        <!-- ======================================== -->
+        <!-- EXPLAINER TAB                            -->
+        <!-- ======================================== -->
+        <div class="tab-panel active" id="panel-explainer">
+
+            <p>
+                When multiple users query or change data at the same time, things can 
+                go wrong in predictable ways. Isolation levels are SQL Server's 
+                setting for controlling how much one transaction can be disturbed by
+                others running at the same time.
+            </p>
+            <p>
+                The higher the isolation, the safer the data - but the more other
+                transactions have to wait. The lower the isolation, the faster 
+                everything runs - but the more risk of reading inaccurate data.
+            </p>
+
+            <h3>The four problems isolation levels protect against</h3>
+
+            <div class="concept-block">
+                <h4>Dirty read</h4>
+                <p>You read data that another transaction changed but has not committed
+                    yet. If tha transaction rolls back, you read something that never
+                    really existed.</p>
+            </div>
+
+            <div class="concept-block">
+                <h4>Non-repeatable read</h4>
+                <p>You read a row, then read it again in the same transaction and get
+                    a different value - because someone else changed and committed it
+                    in between your two reads.</p>
+            </div>
+
+            <div class="concept-block">
+                <h4>Phantom read</h4>
+                <p>You rund a query like SELECT ... WHERE salary > 50000 and get 12 rows.
+                    Later in the same transaction you run it again and get 13 rows
+                    -  a new row appeared because another transaction inserted.</p>
+            </div>
+
+            <div class="concept-block">
+                <h4>Lost update</h4>
+                <p>Two transactions both read the same value, calculate a new value
+                    based on it and both write back. The second write silently overwrites
+                    the first. One update is simply lost.</p>
+            </div>
+
+            <h3>A plain-English example: the dirty read</h3>
+            <p>
+                Transaction A deducts $200 from a bank account but has not committed.
+                Transaction B reads the balance and sees the reduced amount. Transaction
+                A then rolls back - the deduction never happened. But Transaction B 
+                already made a decision based on a balance that was never real.
+                That is a dirty read.
+            </p>
+            <p>
+                The interactive tab lets you explore how each isolation level handles
+                this and the other three problems.
+            </p>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- INTERACTIVE TAB                            -->
+        <!-- ========================================== -->
+        <div class="tab-panel" id="panel-interactive">
+
+            <p style="margin-bottom:16px; font-size:13px; color:#666; ">
+                Select an isolation level to see what it protects against and a 
+                real-world scenario where it is used.
+            </p>
+
+            <div id="iso-buttons"></div>
+            <div class="detail-card" id="detail-card"></div>
+
+        </div>
+
+        <!-- ======================================== -->
+        <!-- REFERENCE TAB                            -->
+        <!-- ======================================== -->
+        <div class="tab-panel active" id="panel-reference">
+
+            <p style="margin-bottom:20px; font-size:13px; color:#666; ">
+                A compact cheat sheet. Return here after working through the 
+                Explainer and Interactive sections.
+            </p>
+
+            <div id="ref-cards"></div>
+
+        </div>
+
+    </main>
+    </div>
+
+    <script>
+
+    /* -- Sidebar toggle -- */
+    function toggleTier(id) {
+        const section = document.getElementById('tier-' + id);
+        section.classList.toggle('open');
+    }
+
+    /* -- Tab switcher -- */
+    function switchTab(name) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    /* -- Isolation level data -- */
+    const levels = [
+        {
+        key: 'ru',
+        name: 'Read Uncommitted',
+        sql: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
+        desc: 'No locks are taken when reading. You can see changes made by other transactions even before they commit. The fastest option but the most dangerous for data accuracy.',
+        risks: [
+            { label: 'Dirty read',              safe: false },
+            { label: 'Non-repeatable read',     safe: false },
+            { label: 'Phantom read',            safe: false },
+            { label: 'Lost update',             safe: false },
+        ],
+        scenario: 'A DBA needs a quick row count on a busy table during a long-running import. Using Read Uncommitted avoids blocking the import job. A slightly inaccurate count is acceptable - no business decision hangs on it.',
+        usedBy: ['DBA diagnostics', 'Live monitoring', 'Data profiling'],
+        },
+        {
+        key: 'rc',
+        name: 'Read Committed',
+        sql: 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+        desc: 'The SQL Server default. You only ever read committed data - not dirty reads. However, if you read the same row twice in one transaction, another transaction can change it in between.',
+        risks: [
+            { label: 'Dirty read',              safe: true },
+            { label: 'Non-repeatable read',     safe: false },
+            { label: 'Phantom read',            safe: false },
+            { label: 'Lost update',             safe: false },
+        ],
+        scenario: 'A customer views their order history in an e-commerce application. Each page load is short, self-contained query. The risk of a row changing between two reads in the same transaction is negligible.',
+        usedBy: ['Web applications', 'CRM/ ERP system', 'Most CRUD apps'],
+        },
+        {
+        key: 'rr',
+        name: 'Repeatable Read',
+        sql: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
+        desc: 'Any row you read is locked until your transaction finishes. Nobody can change those rows while you hold them. New rows matching your query can still appear - phantoms are still possible.',
+        risks: [
+            { label: 'Dirty read',              safe: true },
+            { label: 'Non-repeatable read',     safe: true },
+            { label: 'Phantom read',            safe: false },
+            { label: 'Lost update',             safe: true },
+        ],
+        scenario: 'An insurance system reads a customer\'s policy detail, calculates a premium across several steps and writes the result back. The policy rows must not change mid-calculation, but new policies being added elsewhere do not matter.',
+        usedBy: ['Premium calculation', 'Order fulfillment', 'Multi-step workflows'],
+        },
+        {
+        key: 'ser',
+        name: 'Serializable',
+        sql: 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE',
+        desc: 'The strictest level. SQL Server uses range locks to prevent new rows being inserted that would match your query. Transactions behave as if they ran one after another, not at the same time.',
+        risks: [
+            { label: 'Dirty read',              safe: true },
+            { label: 'Non-repeatable read',     safe: true },
+            { label: 'Phantom read',            safe: true },
+            { label: 'Lost update',             safe: true },
+        ],
+        scenario: 'A bank runs its overnight batch: it reads every account, values every portfolio positionb and produces end-of-day figures. No new transfers or trades can be inserted mid-calculation. The output must be a perfect, stable snapshot.',
+        usedBy: ['Banking end-of-day batch', 'Payroll runs', 'Regulatory reporting'],
+        },
+        {
+        key: 'snap',
+        name: 'Snapshot',
+        sql: 'SET TRANSACTION ISOLATION LEVEL SNAPSHOT',
+        desc: 'Each transaction works from a frozen copy of the data taken at the moment it starts. Readers never block writers and writers never block readers. Conflicts are detected at commit time rather than prevented by locking.',
+        risks: [
+            { label: 'Dirty read',              safe: true },
+            { label: 'Non-repeatable read',     safe: true },
+            { label: 'Phantom read',            safe: true },
+            { label: 'Lost update',             safe: false, note: 'detected at commit' },
+        ],
+        scenario: 'A high-traffic online banking portal serves hundreds of concurrent users reading balances while others make transfers. Blocking would create queues. Snapshot lets reads and writes proceed in parallel; conflicting writes fail at commit and are retried ',
+        usedBy: ['Online banking portals', 'Booking systems', 'SaaS applications'],
+        setup: 'Requires: ALTER DATABASE (NameOfYourDB) SET ALLOW_SNAPSHOT_ISOLATION ON;',
+        }, 
+    ];
+
+    /* -- Build interactive tab -- */
+    function buildInteractive() {
+        const btnContainer = document.getElementById('iso-buttons');
+        levels.forEach(lv => {
+            const btn = document.createElement('button');
+            btn.className = 'iso-btn';
+            btn.textContent = lv.name;
+            btn.onclick = () => selectLevel (lv.key);
+            btn.id = 'btn-' + lv.key;
+            btnContainer.appendChild(btn);
+        });
+        selectLevel('ru');
+    }
+
+    function selectLevel(key) {
+        const lv = levels.find( l => l.key === key);
+        document.querySelectorAll('.iso-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + key).classList.add('active');
+
+        const pills = lv.risks.map(r => {
+            const cls = r.safe ? 'pill-safe' : 'pill-risk';
+            const label = r.safe ? '&#10003; ' : '&#10007; ';
+            const note = r.note ? ' (' + r.note + ')' : '';
+            return '<span class="pill ' + cls + '">' + label + r.label + note + '</span>';
+        }).join('');
+
+        const tags = lv.usedBy.map(u => '<span class="tag">' + u + '</span>').join('');
+        const setupNote = lv.setup
+        ? '<p style="font-size:12px;color:#888;margin-top:8px;">&#9432; ' + lv.setup + '</p>'
+        : '';
+
+        document.getElementById('detail-card').innerHTML = 
+        '<h4>' + lv.name + '</h4>' +
+        '<code>' + lv.sql + '</code>' +
+        '<p>' + lv.desc + '</p>' +
+        '<div style="margin:10px 0">' + pills + '</div>' +
+        '<div class="scenario-box">' + lv.scenario + '</div>' +
+        '<div style="margin-top:10px">' + tags + '</div>' +
+        setupNote;
+    }
+
+    /* Build reference tab -- */
+    function buildReference() {
+        const container = document.getElementById('ref-cards');
+        levels.forEach(lv => {
+            const pills = lv.risks.map(r => {
+                const cls = r.safe ? 'pill-safe' : 'pill-risk';
+                const label = r.safe ? '&#10003; ' : '&#10007; ';
+                return '<span class="pill ' + cls + '">' + label + r.label + '</span>';
+            }).join('');
+
+            const tags = lv.usedBy.map(u => '<span class="tag">' + u + '</span>').join('');
+
+            const card = document.createElement('div');
+            card.className = 'ref-card';
+            card.innerHTML = 
+                '<h4>' + lv.name + '</h4>' +
+                '<code>' + lv.sql + '</code>' +
+                '<div style="margin-bottom:8px">' + pills + '</div>' +
+                '<div>' + tags + '</div>';
+            container.appendChild(card);        
+        });
+    }
+
+    buildInteractive();
+    buildReference();
+
+    </script>
+
+</body>
+</html>
