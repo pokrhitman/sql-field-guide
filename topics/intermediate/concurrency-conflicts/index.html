@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Concurrency Conflicts - SQL Field Guide</title>
+    <meta name ="description" content="Understand SQL Server deadlocks and retry logic: how deadlocks form, how SQL Server resolves them and how to write application code that handles commit failures gracefully." />
+
+    <<meta name = "keywords" content ="SQL, T-SQL, SQL Server, Concurrency, Snapshot, deadlock" />
+    
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/concurrency-conflicts/" />
+
+    <link rel = "stylesheet" href = "../../../assets/css/main.css" />
+
+    
+</head>
+<body>
+
+    <!--- Header --->
+    <header>
+        <h1>SQL Field Guide</h1>
+        <a href="../../../index.html" style="margin-left: 24px;">&#8592; Home</a>
+    </header>
+
+    <div class="layout">
+
+        <!--- Sidebar --->
+        <nav>
+            <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Beginner</button>
+            <div class="tier-section" id="tier-beginner">
+                <div class="category-label">Coming soon</div>
+            </div>
+
+            <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
+            <div class="tier-section open" id="tier-intermediate">
+                <div class="category-label">Transactions &amp; Concurrency</div>
+                <a class="topic-link" href="../isolation-levels/index.html">Isolation Levels</a>
+                <a class="topic-link active" href="index.html">Concurrency Conflicts</a>
+            </div>
+
+            <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
+            <div class="tier-section" id="tier-advanced">
+                <div class="category-label">Coming soon</div>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main>
+
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="../../../index.html">Home</a> &rsaquo;
+                Intermediate &rsaquo;
+                Transactions &amp; Concurrency &rsaquo;
+                Concurrency Conflicts
+            </div>
+
+            <h2>Concurrency Conflicts</h2>
+
+            <div class = "prereq">
+                <strong>Before this topic</strong> you should understand what a 
+                transaction is (BEGIN / COMMIT / ROLLBACK) and have a basic
+                familiarity with the isolation levels - specifically that 
+                transactions hold locks on the data they read or modify.
+                <a href = "../isolation-levels/index.html" style="color:#5c6bc0;">Isolation Levels &#8594;</a>
+            </div>
+
+            <!-- Tab switcher -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('explainer')">Explainer</button>
+                <button class="tab-btn"        onclick="switchTab('interactive')">Interactive</button>
+                <button class="tab-btn"        onclick="switchTab('reference')">Reference</button>
+            </div>
+
+            <!-- ======================================== -->
+            <!-- EXPLAINER TAB                            -->
+            <!-- ======================================== -->
+            <div class="tab-panel active" id="panel-explainer">
+
+                <p>
+                    Choosing the right isolation level handles most concurrency
+                    problems in theory. In practice, two situations still break
+                    through: deadlocks, where the engine has to forcibly kill a
+                    transaction, and commit failures under Snapshot isolation, where 
+                    the engine detects a conflict too late to prevent it.
+                    Both requiry your application - not just your SQL settings - 
+                    to respond correctly.
+                </p>
+
+                <h3>What is a deadlock?</h3>
+                <p>
+                    A deadlock happens when two transactions are each writing for 
+                    the other to release a lock and neither can continue. Each one 
+                    holds something the other needs. Left alone, they would wait
+                    forever.
+                </p>
+
+                <div class="deadlock-diagram">
+                    <div class="dl-box">
+                        <strong>Transaction A</strong>
+                        <span>holds lock on<br /><strong>Table: Orders</strong></span>
+                    </div>
+                    <div class="dl-arrow">&#8594; wants &#8594;</div>
+                    <div class="dl-box dl-victim">
+                        <strong>Transaction B ☠</strong>
+                        <span>holds lock on</span><br /><strong>Table: Customers</strong></span>
+                    </div>
+                    <div class="dl-arrow">&#8594; wants &#8594;</div>
+                    <div class="dl-box" style="border-style:dashed;">
+                        <strong>Transaction A</strong>
+                        <span>(back to start)</span>
+                    </div>
+                </div>
+
+                <p>
+                    SQL Server's deadlock monitor (the <em>lock monitor thread</em>)
+                    wakes up every five seconds to scan for these cycles. When it
+                    finds one, it picks a "victim" - usually the transaction that would
+                    cost less to roll back - and terminates it with error
+                    <strong>1205</strong>. The victim's transaction is rolled back
+                    automatically. The surviving transaction then gets its lock and 
+                    continues.
+                </p>
+
+                <div class="concept-block">
+                    <h4>How the victim is chosen</h4>
+                    <p>
+                        SQL Server picks the transaction with the lowest
+                        <em>deadlock priority</em>. If both are equal (the default),
+                        it rolls back whichever transaction is cheaper to undo - 
+                        typically the one that has done less work so far.
+                        You can influence this with 
+                        <code>SET DEADLOCK_PRIORITY LOW | NORMAL | HIGH</code>,
+                        which is useful when one transaction is much more expensive
+                        to re-run than the other.
+                    </p>
+                </div>
+
+                    <h3>Why deadlocks happen -  and how to reduce them</h3>
+                    <p>
+                        Deadlocks almost always come from transactions accessing the 
+                        same tables in different orders. if Transaction A always locks 
+                        Orders then Customers, and Transaction B always locks Customers
+                        then Orders, a deadlock is only a matter of timing. The fix is 
+                        consistent lock ordering: make both transactions access tables 
+                        in the same sequence.
+                    </p>
+                    <p>
+                        Short transactions also help. The longer a transaction holds 
+                        locks, the larger the window in which another transaction can 
+                        collide with it. Keeping transactions focused - do the work, 
+                        commit quickly - reduces the opportunity for overlap.
+                    </p>
+
+                    <h3>What is a commit failure under Snapshot?</h3>
+                    <p>
+                        Snapshot isolation avoids deadlocks by giving each transaction 
+                        its own frozen copy of the data (a "snapshot" taken at the 
+                        moment the transaction starts). Because readers never block 
+                        writers and writers never block readers, deadlocks largely
+                        disappear. But there is a trade-off: SQL Server cannot prevent 
+                        two transactions from both reading the same data and then both 
+                        trying to update it. Instead it detects the conflict at commit 
+                        time and throws error <strong>3960</strong>, rolling back the 
+                        second writer.
+                    </p>
+                    <p>
+                        This is called an <em>update conflict</em>. It is not a bug - 
+                        it is Snapshot doing its job. But your application must expect
+                        it and know what to do next.
+                    </p> 
+
+                    <h3>Retry logic: the correct response to both errors</h3>
+                    <p>
+                        Both error 1205 (deadlock victim) and error 3960 (Snapshot
+                        update conflict) mean: <em>your transaction was rolled back,
+                        try again</em>. The data is in a consistent state. The work 
+                        simply needs to be re-attempted
+                    </p>
+                    <p>
+                        The pattern is always the same: catch the specific error number,
+                        wait a short time, and retry - up to a maximum number of
+                        attempts. The wait before retrying is important: if two 
+                        transactions conflicted once at exactly the same moment,
+                        retrying immediately at the same moment will conflict again.
+                        A small random delay breaks the synchronisation.
+                    </p>
+                    <p>
+                        The Interactive tab walks through a deadlock step by step,
+                        and the Reference tab has the retry pattern as a code template. 
+                    </p>
+
+            </div>
+
+            <!-- ========================================== -->
+            <!-- INTERACTIVE TAB                            -->
+            <!-- ========================================== -->
+            <div class="tab-panel" id="panel-interactive">
+
+                <p style="margin-bottom:16px; font-size:13px; color:#666; ">
+                    Step through a deadlock scenario frame by frame. Watch what each 
+                    transaction is doing and when SQL Server intervenes.
+                </p>
+
+                <div class="step-counter" id="step-counter">Step 1 of 7</div>
+
+                <div class="timeline">
+                    <div class="tl-col">
+                        <h5 class="txn-a">Transaction A - Order processor</h5>
+                        <div id="tl-a"></div>
+                    </div>
+                    <div class="tl-col">
+                        <h5 class="txn-b">Transaction B - Customer update</h5>
+                        <div id="tl-b"></div>
+                    </div>
+                </div>
+
+                <div class="step-narrative" id="step-narrative"></div>
+
+                <div class="step-controls" style="margin-top:16px;">
+                    <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&#8592; Previous</button>
+                    <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &#8594;</button>
+                    <button class="step-btn secondary" onclick="resetSteps()">&#8635; Restart</button>
+                </div>
+
+            </div>
+
+            <!-- ======================================== -->
+            <!-- REFERENCE TAB                            -->
+            <!-- ======================================== -->
+            <div class="tab-panel" id="panel-reference">
+
+                <p style="margin-bottom:20px; font-size:13px; color:#666; ">
+                    A compact cheat sheet. Return here after working through the 
+                    Explainer and Interactive sections.
+                </p>
+
+                <!-- Error codes -->
+                <h3 style="margin-top:0;">Key error numbers</h3> 
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Error</th>
+                            <th>Name</th>
+                            <th>Cause</th>
+                            <th>Transaction state</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>1205</code></td>
+                            <td>Deadlock victim</td>
+                            <td>Two transactions waiting for each other's locks - SQL chose this one to roll back </td>
+                            <td>Automatically rolled back</td>
+                        </tr>
+                         <tr>
+                            <td><code>3960</code></td>
+                            <td>Snapshot update conflict</td>
+                            <td>Another transaction modified the same row between your snapshot start and your commit</td>
+                            <td>Automatically rolled back</td>
+                        </tr>                                                
+                    </tbody>
+                </table>
+
+                <!-- Deadlock reduction -->
+                <h3>Reducing deadlocks</h3>
+                <div class="ref-card">
+                    <h4>Consistent lock ordering</h4>
+                    <p>If multiple transactions touch the same tables, always access them in the same order. This prevents the circular wait that causes deadlocks.</p>
+                </div>
+                <div class="ref-card">
+                    <h4>Short transactions</h4>
+                    <p>Commit as quickly as possible. Every second a transaction holds a lock is a second another transaction could collide with it.</p>
+                </div>
+                <div class="ref-card">
+                    <h4>Deadlock priority</h4>
+                    <code>SET DEADLOCK_PRIORITY LOW | NORMAL | HIGH;</code>
+                    <p>Telss SQL Server which transaction to sacrifice first. Set LOW on transactions that are cheap to retry; set HIGH on expensive long-running ones.</p>
+                </div>
+
+                <!-- Retry pattern -->
+                <h3>T-SQL retry pattern</h3>
+                <p style="font-size:13px;color: #666; margin-bottom:8px;">
+                    Apply this wrapper around any transaction that might be chosen 
+                    as a deadlock victim or hit a Snapshot update conflict.
+                    Errors 12ß5 and 3960 both mean "rolled back - safe to retry."
+                </p>
+
+<div class="code-block"><span class="c-comment">--Retry wrapper for deadlock (1205) and Snapshot conflict (3960)
+-- Copy this pattern and replace the inner block with your transaction.</span>
+
+<span class="c-keyword">DECLARE</span> @attempt    <span class="c-number">INT</span> = <span class="c-number">1</span>;
+<span class="c-keyword">DECLARE</span> @maxTries   <span class="c-number">INT</span> = <span class="c-number">3</span>;
+<span class="c-keyword">DECLARE</span> @success    <span class="c-nu,ber">INT</span> = <span class="c-number">0</span>;
+
+<span class="c-keyword">WHILE</span> @attempt &alt;= @maxTries  <span class="c-number">0</span> @success <span class="c-number">1</span>;
+<span class="c-keyword">BEGIN</span>
+    <span class="c-keyword">BEGIN TRY</span>
+        <span class="c-keyword">BEGIN TRANSACTION</span>;
+
+            <span class="c-comment">--Your work goes here</span>
+            <span class="c-keyword">UPDATE</span> Orders    <span class="c-keyword">SET</span> Status   = <span class="c-string">'Processed'</span> <span class="c-keyword">WHERE</span> OrderID = <span class="c-number">42</span>;
+            <span class="c-keyword">UPDATE</span> Customers <span class="c-keyword">SET</span> LastOrder  = GETDATE() <span class="c-keyword">WHERE</span> CustomerID = <span class="c-number">7</span>;
+
+        <span class="c-keyword">COMMIT TRANSACTION</span>;
+        <span class="c-keyword">SET</span> @success = <span class="c-number">1</span>; <span class="c-comment">-- Reached here = no error, exit the loop</span>
+
+    <span class="c-keyword">END TRY</span>
+    <span class="c-keyword">BEGIN CATCH</span>
+
+        <span class="c-keyword">IF</span> <span class="c-keyword">XACT_STATE</span> &lt;&gt; <span class="c-number">0</span>
+            <span class="c-keyword">ROLLBACK TRANSACTION</span> <span class="c-comment">-- Clean up before retrying</span>
+
+        <span class="c-keyword">IF</span> ERROR_NUMBER() <span class="c-keyword">IN</span> (<span class="c-number">1205</span>, <span class="c-number">3960/span>) <span class="c-keyword">AND</span> @attempt &lt; @maxTries
+        <span class="c-keyword">BEGIN</span>
+            <span class="c-comment">-- Retryable error: wait briefly, then try again
+            -- WAITFOR adds a small delay so a retry does not hit the same
+            -- collision at exactly the same millisecond.</span>
+            <span class="c-keyword">WAITFOR DELAY</span> <span class="c-string">'00:00:00.200'</span>  <span class="c-comment">-- 200ms</span>
+            <span class="c-keyword">SET</span> @attempt = @attempt + <span class="c-number">1</span>;
+        <span class="c-keyword">END</span>
+        <span class="c-keyword">ELSE</span>
+        <span class="c-keyword">BEGIN</span>
+            <span class="c-comment">-- Different error, or retries exhausted: re-raise</span>
+            <span class="c-keyword">THROW</span>
+        <span class="c-keyword">END</span>
+
+    <span class="c-keyword">END CATCH</span>
+<span class="c-keyword">END</span></div>
+
+                <!-- Notes on XACT_STATE -->
+                <div class="ref-card" style="margin-top:4px;">
+                    <h4>Why check XACT_STATE() before rolling back?</h4>
+                    <p>
+                        After error 1205, SQL Server has already rolled back your
+                        transaction automatically. Calling ROLLBACK on something that 
+                        no longer exists causes a second error. <code>XACT_STATE()</code>
+                        returns 0 if there is no active transaction, -1 if it is 
+                        uncommittable (must be rolled back), or 1 if it is still valid.
+                        Checking first makes the CATCH block safe in all three cases.
+                    </p>
+                </div>
+
+                <div class="ref-card">
+                    <h4>MySQL / PostgreSQL note</h4>
+                    <p>
+                        MySQL uses error code <strong>1213</strong> for deadlock victim.
+                        PostgreSQL raises SQLSTATE <strong>40P01</strong>. 
+                        The retry logic pattern is identical - only the error number to 
+                        catch changes.
+                    </p>
+                </div>
+
+            </div><!-- /panel-reference -->
+                 
+        </main>
+    </div>
+
+    <script>
+
+    /* -- Sidebar toggle -- */
+    function toggleTier(id) {
+        const section = document.getElementById('tier-' + id);
+        section.classList.toggle('open');
+    }
+    
+    /* -- Tab switcher -- */
+    function switchTab(name) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    /*  ===========================================================
+        Interactive: Deadlock step-through widget
+
+        Each step in the scenario is described as an object with:
+        - stateA/ stateB: arrays matching the txn step rows.
+          Each entry is a class: 'pending' | 'active-a' | 'active-b'
+          | 'done' | 'blocked' | 'victim' | 'resolved'
+        - narrative: the explanation shown below the timeline
+        =========================================================== */ 
+
+    const txnASteps = [
+        'BEGIN TRANSACTION',
+        'UPDATE Orders SET Status = \'Processed\'',
+        '-- holds lock on Orders row',
+        'UPDATE Customers SET LastOrder = ...',
+        '-- waiting for Customers lock...',
+        '-- SQL Server: chosen as victim',
+        'ROLLBACK (automatic)',
+    ];
+
+    const txnBSteps = [
+        'BEGIN TRANSACTION',
+        'UPDATE Customers SET CreditScore = 720',
+        '-- holds lock on Customers row',
+        'UPDATE Orders SET Priority = \'High\'',
+        '-- waiting for Orders lock...',
+        '-- SQL Server: survives',
+        'COMMIT',
+    ];
+
+    // Each step: which class to apply to each row of A and B (7 rows each)
+    // Classes; ' {pending/grey}', 'active-a', 'active-b', 'done', 'blocked', 'victim', 'resolved'
+    const steps = [
+        { 
+            a: ['active-a', '', '', '', '', '', ''],
+            b: ['', '', '', '', '', '', ''],
+            narrative: 'Transaction A starts. It is an order processor that will update two tables: first Orders, then Customers.',
+        },
+        { 
+            a: ['done', 'active-a', 'active-a', '', '', '', ''],
+            b: ['active-b', '', '', '', '', '', ''],
+            narrative: 'Transaction A updates a row in Orders and holds a lock on it. Transaction B starts at roughly the same moment and updates a row in Customers, holding a lock on that row.',
+        },
+        { 
+            a: ['done', 'done', 'active-a', '', '', '', ''],
+            b: ['done', 'done', 'active-b', '', '', '', ''],
+            narrative: 'Both transactions are now holding their first lock. Transaction A holds Orders. Transaction B holds Customes. So far, no problem - they have not tried to touch each other\'s data yet.',
+        },
+        { 
+            a: ['done', 'done', 'done', 'active-a', '', '', ''],
+            b: ['done', 'done', 'done', 'active-b', '', '', ''],
+            narrative: 'Now both transactions move on to their second update. Transaction A needs Customers. Transaction B needs Orders. Each one now wants exactly what the other is holding.',
+        },
+        { 
+            a: ['done', 'done', 'done', 'done', 'blocked', '', ''],
+            b: ['done', 'done', 'done', 'done', 'blocked', '', ''],
+            narrative: 'Both transactions are noch blocked, waiting for the other to release its lock. Neither can proceed. This is the deadlock: a circular wait with no way out. SQL Server\'s lock monitor thread (which wakes every 5 seconds) detects this cycle.',
+        },
+        { 
+            a: ['done', 'done', 'done', 'done', 'blocked', 'victim', ''],
+            b: ['done', 'done', 'done', 'done', 'blocked', 'resolved', ''],
+            narrative: 'SQL Server picks Transaction A as deadlock victim - it has done less work and is cheaper to roll back. Transaction A receives error 1205 and is terminated. Transaction B is released from its wait and can now acquire the lock on Orders.',
+        },
+        { 
+            a: ['done', 'done', 'done', 'done', 'done', 'done', 'victim'],
+            b: ['done', 'done', 'done', 'done', 'done', 'done', 'resolved'],
+            narrative: 'Transaction A is fully rolled back - all its changes are undone, as if it never ran. Transaction B commits successfully. The data is consitent. Transaction A\'s application must not catch error 1205 and retry the entire transaction.',
+        },
+    ];
+
+    let currentStep = 0;
+    
+    function buildTimeLine() {
+        const colA = document.getElementById('tl-a');
+        const colB = document.getElementById('tl-b');
+        colA.innerHTML = '';
+        colB.innerHTML = '';
+        txnASteps.forEach((text, i) => {
+            const div = document.createElement('div');
+            div.className = 'tl-step';
+            div.id = 'a-' + i;
+            div.textContent = text;
+            colA.appendChild(div);
+        });
+        txnBSteps.forEach((text, i) => {
+            const div = document.createElement('div');
+            div.className = 'tl-step';
+            div.id = 'b-' + i;
+            div.textContent = text;
+            colB.appendChild(div);
+        });      
+    }
+
+    function renderStep(index) {
+        const step = steps[index];
+
+        // Apply classes to each row
+        step.a.forEach((cls, i) => {
+            const el = document.getElementById('a-' + i);
+            el.className = 'tl-step' + (cls ? ' ' + cls : '');
+        });
+        step.b.forEach((cls, i) => {
+            const el = document.getElementById('b-' + i);
+            el.className = 'tl-step' + (cls ? ' ' + cls : '');
+        });
+
+        document.getElementById('step-narrative').textContent = step.narrative;
+        document.getElementById('step-counter').textContent = 
+            'Step ' + (index + 1) + ' of ' + steps.length;
+
+        document.getElementById('btn-prev').disabled = (index === 0);
+        document.getElementById('btn-prev').disabled = (index === steps.length - 1);
+    }
+
+    function changeStep(delta) {
+        currentStep = Math.max(0, Math.min(steps.length -1, currentStep + delta));
+        renderStep(currentStep);
+    }
+
+    function resetSteps() {
+        currentStep = 0;
+        renderStep(0);
+    }
+
+    buildTimeLine();
+    renderStep(0);
+
+    </script>
+
+</body>
+</html>

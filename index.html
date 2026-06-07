@@ -3,130 +3,27 @@
 <head>
     <meta charset="UTF-8" />
     <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SQL Field Guide</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0;}
+    <title>SQL Field Guide - Interactive Reference for SQL Learners</title>
 
-        body {
-            font-family: sans-serif;
-            font-size: 15px;
-            color: #222;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+    <meta name = "description" content="A free, interactive reference guide for SQL Lerners.
+    Visual explainers, hand-on widgets and cheat sheets for a better learning experience.
+    Focused on Microsoft SQL Server and T-SQL." />
 
-        /* -- Header -- */
-        header {
-            background: #1a1a2e;
-            color: #fff;
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-        header h1 { font-size: 18px; font-weight: 500;}
-        header a  { color: #aac4ff; font-size: 13px; text-decoration: none; }
-        header a:hover {text-decoration: underline; }
+    <meta name = "keywords" content ="SQL, T-SQL, SQL Server, SQL reference guide, SQL learning, interactive, coursework, oline tutorial" />
 
-        /* -- Body: sidebar + content -- */
-        .layout {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+    <meta rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/" />
 
-        /* -- Sidebar -- */
-        nav {
-            width: 240px;
-            background: #f5f5f5;
-            border-right: 1px solid #ddd;
-            overflow-y: auto;
-            flex-shrink: 0;
-            padding: 16 px 0;
-        }
+    <meta property = "og:type"          content="website"/>
+    <meta property = "og:title"         content="SQL Field Guide"/>
+    <meta property = "og:description"   content="Interactive SQL reference - filling the gaps that coursework leave behind. Focused on SQL Server and T-SQL."/>
+    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/" />
 
-        /* Tier buttons - Beginner / Intermediate / Advanced */
-        .tier-btn {
-            width: 100%;
-            background: none;
-            border: none;
-            text-align: left;
-            padding: 8px 16px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #444;
-            cursor: pointer;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-        .tier-btn:hover { background: #e8e8e8; }
+    <link rel = "stylesheet" href="assets/css/main.css" />
 
-        /*Category label inside an open tier */
-        .category-label {
-            padding: 6px 16px 2px 24px;
-            font-size: 12px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        /*Individual topic links */
-        .topic-link {
-            display: block;
-            padding: 6px 16px 6px 32px;
-            font-size: 13px;
-            color: #333;
-            text-decoration: none;
-            border-left: 3px solid transparent;
-        }
-        .topic-link:hover { background: #e0e0e0; }
-        .topic-link:active {
-            border-left-color: #1a1a2e;
-            background-color: #e8eaf6;
-            font-weight: 500;
-        }
-
-        /* Collapsible tier sections */
-        .tier-section { display: none }
-        .tier-section.open { display: block; }
-
-        /* -- Content area -- */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 40px 48px;
-            max-width: 860px;
-        }
-
-        main h2 { font-size: 22px; font-weight: 500; margin-bottom: 12px; }
-        main h3 { font-size: 16px; font-weight: 500; margin: 24px 0 8px; }
-        main p { line-height: 1.7; color: #444; margin-bottom: 12px;}
-
-        .tag {
-            display: inline-block;
-            background: #e8eaf6;
-            color: #3c3c8e;
-            font-size: 12px;
-            padding: 2px 10px;
-            border-radius: 20px;
-            margin: 2px 4px 2px 0;
-        }
-
-        .notice {
-            background: #fff8e1;
-            border-left: 4px solid #f9a825;
-            padding: 12px 16px;
-            font-size: #555;
-            margin: 24px 0;
-            line-height: 1.6;
-        }
-    </style>
 </head>
 <body>
 
-<! -- Header -- >
+<!-- Header -->
 <header>
     <h1>SQL Field Guide</h1>
     <a href="https://github.com/pokrhitman/sql-field-guide" target="_blank">GitHub</a>
@@ -134,25 +31,24 @@
 
 <div class="layout">
 
-    <! -- Sidebar -- >
+    <!-- Sidebar -->
     <nav>
 
-        <! -- Beginner -- >
+        <!-- Beginner -->
         <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Begginer</button>
         <div class="tier-section" id="tier-beginner">
             <div class="category-label">Coming soon</div>
         </div>
 
-        <! -- Intermediate -- >
+        <!-- Intermediate -->
         <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
         <div class="tier-section open" id="tier-intermediate">
             <div class="category-label">Transactions &amp; Concurrency</div>
-            <a class="topic-link" href="topics/intermediate/isolation-levels/index.html">
-                Isolation Levels
-            </a>
+            <a class="topic-link" href="topics/intermediate/isolation-levels/index.html">Isolation Levels</a>
+            <a class="topic-link" href="topics/intermediate/concurrency-conflicts/index.html">Concurrency Conflicts</a>
         </div>
 
-        <! --  Advanced -- >
+        <!--  Advanced -->
         <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
         <div class="tier-section" id="tier-advanced">
             <div class="category-label">Coming soon</div>
@@ -160,7 +56,7 @@
 
     </nav>
 
-    <! -- Welcome content -- >
+    <!-- Welcome content -->
     <main>
         <h2>Welcome to the SQL Field Guide</h2>
 
@@ -192,7 +88,7 @@
         <p>
             <span class="tag">Advanced</span> Practitioners who use SQL
             professionally and want to go deeper into performance, Concurrency
-            patterns and query optmisation.
+            patterns and query optmization.
         </p>
 
         <h3>How to use this field guide</h3>
@@ -221,23 +117,44 @@
         </p>
     </main>
 
-    </div>
+</div>
 
-    <script>
-        function toggleTier(id) {
-            const section = document.getElementById('tier-' + id);
+<!-- Site footer -->
+<footer>
+    <p>
+        This guide is provided for <strong>educational purposes only</strong>.
+        All content is offered on a best-effort basis. No warranty is made as
+        to the accuracy or completeness of any topic, code example or
+        explanation. Use at your own discretion.
+    </p>
+    <p style="margin-top: 8px;">
+        Licensed under
+        <a href="https://github.com/pokrhitman/sql-field-guide/blob/main/LICENSE"
+           target="_blank">CC BY-NC 4.0</a>.
+        Free to share and adapt for non-commercial purposes with attribution.
+        Commercial use requires a separate written agreement.
+        &nbsp;&middot;&nbsp;
+        Questions or corrections?
+        <a href="https://github.com/pokrhitman/sql-field-guide/issues"
+           target="_blank">Open an issue on GitHub</a>.
+    </p>
+</footer>
+
+<script>
+    function toggleTier(id) {
+        const section = document.getElementById('tier-' + id);
             section.classList.toggle('open');
 
-            //Update the arrows on the button
-            const buttons = document.querySelectorAll('.tier-btn');
-            buttons.forEach(btn => {
-                if (btn.getAttribute('onclick') === "toggleTier('" + id + "')") {
-                    const isOpen = section.classList.contains('open');
-                    btn.textContent = (isOpen ? '\u25BC' : '\u25BA') + ' ' +
-                    btn.textContent.slice(2);
-                }
-            });
-        }
+        //Update the arrow on the button that was clicked
+        const buttons = document.querySelectorAll('.tier-btn');
+        buttons.forEach(btn => {
+            if (btn.getAttribute('onclick') === "toggleTier('" + id + "')") {
+                const isOpen = section.classList.contains('open');
+                btn.textContent = (isOpen ? '\u25BC' : '\u25BA') + ' ' +
+                btn.textContent.slice(2);
+            }
+        });
+    }
 
     // Mark the active topic link based on the current URL
     const links = document.querySelectorAll('.topic-link');
