@@ -5,6 +5,8 @@ for the concepts that coursework and video tutorials tend to move past too
 quickly. This guide does not try to replace paid SQL courses — it fills the
 gaps they leave behind.
 
+**Live site:** https://pokrhitman.github.io/sql-field-guide/
+
 ---
 
 ## Who this is for
@@ -33,9 +35,11 @@ Every topic is organised into three sections:
 ## Current content
 
 ### Intermediate — Transactions & Concurrency
-- [Isolation Levels](topics/intermediate/isolation-levels/index.html)
+- [ACID Properties](topics/intermediate/acid-properties/index.html) — the four guarantees every transaction must satisfy, and why Isolation is the one with trade-offs
+- [Isolation Levels](topics/intermediate/isolation-levels/index.html) — the five SQL Server isolation levels, what each protects against, and when to use each one
+- [Concurrency Conflicts](topics/intermediate/concurrency-conflicts/index.html) — deadlocks and Snapshot update conflicts, with a step-through animated timeline and a T-SQL retry pattern
 
-More topics are in development. See the [open issues](#) for what is planned
+More topics are in development. See the [open issues](https://github.com/pokrhitman/sql-field-guide/issues) for what is planned
 and where contributions are most needed.
 
 ---
@@ -47,7 +51,7 @@ and where contributions are most needed.
   included on the topic page.
 - **No dependencies:** the site is plain HTML, CSS, and JavaScript. No
   framework, no build step, no package manager required.
-- **Hosted on:** GitHub Pages
+- **Hosted on:** GitHub Pages at https://pokrhitman.github.io/sql-field-guide/
 
 ---
 

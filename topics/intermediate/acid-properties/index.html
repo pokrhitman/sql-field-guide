@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACID Properties - SQL Field Guide</title>
+    <meta name ="description" content="Understand the four ACID guarantees in SQL Server transactions: Atomicity, Consitency, Isolation and Durability - and why each one matters when things go wrong." />
+    <meta name = "keywords" content ="SQL, T-SQL, SQL Server, ACID, Atomicity, Consistency, Isolation, Durability, transactions, database." />
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/acid-properties/" />
+    <meta property = "og:type"          content="website"/>
+    <meta property = "og:title"         content="ACID Properties - SQL Field Guide"/>
+    <meta property = "og:description"   content="The four guarantees every SQL Server transactions must provide - and what breaks without each one."/>
+    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/acid-properties" />
+    <link rel = "stylesheet" href = "../../../assets/css/main.css" />   
+</head>
+<body>
+
+        <!--- Header --->
+    <header>
+        <h1>SQL Field Guide</h1>
+        <a href="../../../index.html" style="margin-left: 24px;">&#8592; Home</a>
+    </header>
+
+    <div class="layout">
+
+        <!--- Sidebar --->
+        <nav>
+            <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Beginner</button>
+            <div class="tier-section" id="tier-beginner">
+                <div class="category-label">Coming soon</div>
+            </div>
+
+            <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
+            <div class="tier-section open" id="tier-intermediate">
+                <div class="category-label">Transactions &amp; Concurrency</div>
+                <a class="topic-link active" href="index.html">ACID Properties</a>
+                <a class="topic-link" href="../isolation-levels/index.html">Isolation Levels</a>
+                <a class="topic-link" href="../concurrency-conflicts/index.html">Concurrency Conflicts</a>
+            </div>
+
+            <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
+            <div class="tier-section" id="tier-advanced">
+                <div class="category-label">Coming soon</div>
+            </div>
+        </nav>
+    
+        <!---Main content -->
+        <main>
+
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="../../../index.html">Home</a> &rsaquo;
+                Intermediate &rsaquo;
+                Transactions &amp; Concurrency &rsaquo;
+                ACID Properties
+            </div>
+
+            <h2>ACID Properties</h2>
+
+            <div class="prereq">
+                <strong>Before this topic:</strong> you should be comfortable
+                writing basic SELECT, INSERT, UPDATE and DELETE queries, and 
+                unterstand what a transaction is -  that a BEGIN / COMMIT block 
+                is a unit of work that either fully succeeds or fully rolls back.
+            </div>
+
+            <!-- Tab switcher -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('explainer', event)">Explainer</button>
+                <button class="tab-btn"        onclick="switchTab('interactive', event)">Interactive</button>
+                <button class="tab-btn"        onclick="switchTab('reference', event)">Reference</button>
+            </div>
+
+            <!-- ======================================== -->
+            <!-- EXPLAINER TAB                            -->
+            <!-- ======================================== -->
+            <div class="tab-panel active" id="panel-explainer">
+
+                <p>
+                    Every transaction in SQL Server must satisfy four guarantees.
+                    Together they are known as <strong>ACID</strong> - a shorthand 
+                    for Atomicity, Consistency, Isolation and Durability. These
+                    are not features you turn on. They are promises the database 
+                    engine makes to you about every transaction, all the time.
+                </p>
+                <p>
+                    To make each guarantee concrete, the same scenario runs through 
+                    all four: a bank transfer move $200 from a savings account 
+                    to a current account. That is two UPDATE statements inside one 
+                    transaction. Simple - but each guarantee is protecting you from
+                    a different way it could wrong.
+                </p>
+
+                <h3>Atomicity</h3>
+                <div class="concept-block">
+                    <h4>The guarantee</h4>
+                    <p>Every statement in a transaction either all succeeds or all 
+                    fails together. There is no partial outcome. </p>
+                </div>
+                <p>
+                    The transfer requires two steps: debit savaings, credit current.
+                    Atomicity means both happen, or neither happens. If the server 
+                    crashes between the debit and the credit, SQL Server rolls back 
+                    the debit automatically on restart - the account is exactly as it 
+                    was before the transaction started. The $200 cannot disappear into
+                    a gap between two statements.
+                </p>
+                <p>
+                    The mechanism is the <strong>transaction log</strong>. Before
+                    any data page is changed, SQL Server writes the intended change 
+                    to the log. If revocery is needed, the engine replays or undoes
+                    entries from the log to restore a consistent state.
+                </p>
+
+                <h3>Consistency</h3>
+                <div class="concept-block">
+                    <h4>The guarantee</h4>
+                    <p>A transaction can only bring the database from one valid state
+                    to another. It cannot leave the database in a state that violates
+                    defined rules and constraints. </p>
+                </div>
+                <p>
+                    The bank enforces a rule: no account balance may go below $0.
+                    That rule is defined as a CHECK constraint on the Account table. 
+                    If the savings balance is only $150 and the transfer requests
+                    $200, the transaction violates the constraint. SQL Server rejects
+                    the entire transaction and rolls it back. The database stays valid.
+                </p>
+                <p>
+                    Consistency is the only ACID property that is partly your 
+                    responsibility. SQL Server enforces constraints you define - 
+                    foreign keys, CHECK constraints, UNIQUE indexes, NOT NULL. But 
+                    if a business rule is encoded as a constraint, the database 
+                    cannot enforce it. Consistency is a partnership between the 
+                    engine and the schema designer.
+                </p>
+
+                <h3>Isolation</h3>
+                <div class="concept-block">
+                    <h4>The guarantee</h4>
+                    <p>Concurrent transactions behave as if they ran one after 
+                    another. Intermediate states are not visible to other 
+                    transactions.</p>
+                </div>
+                <p>
+                    While the transfer is mid-flight - savings debited, current not
+                    yet credited - a second transaction reads both balances. Without 
+                    isolation, it sees $200 missing from savings but not yet present 
+                    in current. It makes a decision based on a state that never 
+                    permanently existed. With isolation, the intermediate state is 
+                    hidden until the transfer commits.
+                </p>
+                <p>
+                    Isolation is the one ACID property with adjustable trade-offs. 
+                    Perfect isolation is expensive - it requires locking, which 
+                    slows concurrent work. SQL Server lets you dial this trade-off
+                    using <strong>isolation levels</strong>. That is why isolation 
+                    levels have their own topic page - the I in ACID is the letter
+                    with settings.
+                </p>
+
+                <h3>Durability</h3>
+                <div class="concept-block">
+                    <h4>The guarantee</h4>
+                    <p>Once a transaction commits, its changes survive permanently - 
+                    even if the server loses power one second later.</p>
+                </div>
+                <p>
+                    The transfer commits at 14:32:07. At 14:32:08 the server loses 
+                    power. When it restarts, the transfer is still there. SQL Server
+                    guarantees this by writing committed changes to the transaction 
+                    log on disk before returning success to the application. The data 
+                    pages in memory may not yet be flushed to disk - but the log is
+                    and the log is enough to reconstruct the committed state on revocery.
+                </p>
+                <p>
+                    This is sometimes called <em>write-ahead</em> (WAL):
+                    the log is always written before the data page is written. It is 
+                    the foundation of both Durability and atomicity.
+                </p>
+
+                <h3>How the four properties connect</h3>
+                <p>
+                    Atomicity and Durability are enforced by the same mechanism - 
+                    the transaction log. Atomicity uses the log to undo incomplete
+                    work; Durability uses it to survive crashes and replay committed
+                    work. Consistency relies on your schema design - the engine 
+                    enforces constraints you define. Isolation is the only property 
+                    with a dial: the five isolation levels in SQL Server are five
+                    different answers to the question: "how much isolation are you
+                    willing to pay for?"
+                </p>
+
+            </div>
+
+            <!-- ========================================== -->
+            <!-- INTERACTIVE TAB                            -->
+            <!-- ========================================== -->
+            <div class="tab-panel" id="panel-interactive">
+
+                <p style="margin-bottom:16px; font-size:13px; color:#666; ">
+                    Select a property to see what it protects, then toggle the 
+                    guarantee off to see what breaks in the bank transfer scenario.
+                </p>
+
+                <div id="acid-buttons"></div>
+                <div id="acid-card"></div>
+
+            </div>
+
+            <!-- ======================================== -->
+            <!-- REFERENCE TAB                            -->
+            <!-- ======================================== -->
+            <div class="tab-panel" id="panel-reference">
+
+                <p style="margin-bottom:20px; font-size:13px; color:#666; ">
+                    A compact cheat sheet. Return here after working through the 
+                    Explainer and Interactive sections.
+                </p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Guarantee</th>
+                            <th>Without it</th>
+                            <th>SQL Server mechanism</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Atomicity</strong></td>
+                            <td>All statements commmit or all roll back - no partial outcome</td>
+                            <td>A crash mid-transaction leaves data in a half-changed state</td>
+                            <td>Transaction log - incomplete transactions are rolled back on revocery</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Consistency</strong></td>
+                            <td>A transaction can only produce a valid database state</td>
+                            <td>Constraint violations are committed - data becomes invalid</td>
+                            <td>CHECK constraints, foreign keys, UNIQUE indexes, NOT NULL</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Isolation</strong></td>
+                            <td>Concurrent transactions cannot see each other's intermediate state</td>
+                            <td>Dirty reads, non-repeatable reads, phantom reads, lost updates</td>
+                            <td>Locking and row versioning - tuned via isolation levels</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Durability</strong></td>
+                            <td>Committed changes survive power loss, crashes and restarts</td>
+                            <td>A commit that disappears after a crash - data loss</td>
+                            <td>Write-ahead logging - log is flushed to disk before commit returns</td>
+                        </tr>                   
+                    </tbody>
+                </table>
+
+                <div class="notice" style="margin-top: 28px;">
+                    <strong>The I in ACID has settings.</strong> Atomicity,
+                    Consistency and Durability are binary - the engine either
+                    provides them or it does not. Isolation is different: SQL Server 
+                    gives you five isolation levels, each trading some isolation for 
+                    better concurrency. The trde-off is covered in full on the 
+                    <a href="../isolation-levels/index.html" style="color: #5c6bc0;">Isolation Levels</a>
+                    page.
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+ <script>
+
+/* -- Sidebar toggle -- */
+function toggleTier(id) {
+    const section = document.getElementById('tier-' + id);
+    section.classList.toggle('open');
+}
+
+/* -- Tab switcher -- */
+function switchTab(name, event) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+
+    /* -- ACID interactive data -- */ 
+    const properties = [
+        {
+            key: 'atomicity',
+            letter: 'A',
+            name: 'Atomicity',
+            tagline: 'All or nothing',
+            safeTitle: 'Both statements commit together',
+            safeAccounts: { savings: 800, current: 400},
+            safeNote: 'Debit and credit both applied. Total: $1.200. Unchanged.',
+            brokenTitle: 'Server crashes after the debit - before the credit',
+            brokenAccounts: { savings: 800, current: 200 },
+            brokenNote: '$200 was debited from savings but the credit never ran. The money no longer exists in either account.',
+            explanation: 'Without atomicity, a crash, error or network failure between two statements leaves the database in half-changed state. SQL Server prevents this using the transaction log: on restart, any transaction that dit not commit is automatically rolled back.',
+        },
+        {
+            key: 'consistency',
+            letter: 'C',
+            name: 'Consistency',
+            tagline: 'Only valid states',
+            safeTitle: 'Constraint prevents the transfer',
+            safeAccounts: { savings: 150, current: 200},
+            safeNote: 'Savings balance is $150. Transfer of $200 would violate the CHECK constraint (balance >=0 ). Transaction is rejected. Accounts unchanged.',
+            brokenTitle: 'Transfer proceeds - balance goes negative',
+            brokenAccounts: { savings: -50, current: 400 },
+            brokenNote: 'Without the constraint, the debit succeeds and savings drops to -$50. The database is now in an invalid state that the business rules forbids.',
+            explanation: 'Consistency is the ACID property most dependent on you, the schema designer. SQL Server enforces constraints you define - CHECK, FOREIGN KEY, UNIQUE, NOT NULL. Business rules that are not encoded as constraints are invisible to the engine.',
+        },
+        {
+            key: 'isolation',
+            letter: 'I',
+            name: 'Isolation',
+            tagline: 'Intermediate states stay hidden',
+            safeTitle: 'Transaction B sees committed state only',
+            safeAccounts: { savings: 800, current: 400},
+            safeNote: 'While Transaction A is a mid-transfer, Transaction B reads both accounts. Isolation hides the incomplete state. B sees the pre-transfer balances until A commits.',
+            brokenTitle: 'Transaction B sees the gap mid-transfer',
+            brokenAccounts: { savings: 800, current: 200 },
+            brokenNote: 'Transaction B reads after the debit but before the credit. Savings shows $800 (already debited), current shows $200 (not yet credited). $200 appears to have vanished. B makes a decision on a state that never permanently existed.',
+            explanation: 'Isolation is the once ACID property with trade-offs. Perfect isolation is expensive - it requires locks, which slow concurrent work. SQL Server lets you choose how much isolation to pay for using isolation levels. See the Isolation Levels page for the full picture.',
+            link: '../isolation-levels/index.html',
+            linkLabel: 'Isolation Levels &rarr;',
+        },
+        {
+            key: 'durability',
+            letter: 'D',
+            name: 'Durability',
+            tagline: 'Committed means permanent',
+            safeTitle: 'Transfer survives power loss',
+            safeAccounts: { savings: 800, current: 400},
+            safeNote: 'The transfer commits at 14:32:07. Power fails at 14:32:08. On restart, SQL Server replays the transaction log and the committed transfer is restored exactly.',
+            brokenTitle: 'Transaction B sees the gap mid-transfer',
+            brokenAccounts: { savings: 800, current: 200 },
+            brokenNote: 'The commit returned success, but the data page had not been flushed to disk. After the power failure, the in-memory change is gone. The accounts are back to their pre-transfer state - as if the confirmed transaction never happened.',
+            explanation: 'SQL Server guarantees durability through write-ahead logging: the transaction log is always flushed to disk before the commit is confirmed to the application. Data pages may still be in memory - but the log on disk is enough to reconstruct the committed state on recovery.',
+        },
+    ];
+
+    let currentToggle = {};
+
+    function buildInteractive() {
+        const btnContainer = document.getElementById('acid-buttons');
+        properties.forEach(p => {
+            const btn = document. createElement('button');
+            btn.className = 'iso-btn';
+            btn.textContent = p.letter + ' - ' + p.name;
+            btn.id = 'btn-' + p.key;
+            btn.onclick = () => selectProperty(p.key);
+            btnContainer.appendChild(btn);
+        });
+        selectProperty('atomicity');
+    }
+
+    function selectProperty(key) {
+        const p = properties.find(x => x.key === key);
+        currentToggle[key] = currentToggle[key] || 'safe';
+
+        document.querySelectorAll('.iso-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + key).classList.add('active');
+
+        renderCard(p, currentToggle[key]);
+    }
+
+    function toggleGuarantee(key) {
+        currentToggle[key] = (currentToggle[key] === 'safe') ? 'broken' : 'safe';
+        const p = properties.find(x => x.key === key);
+        renderCard(p, currentToggle[key]);
+    }
+
+    function renderCard(p, state) {
+        const isBroken = state === 'broken';
+        const accounts = isBroken ? p.brokenAccounts : p.safeAccounts;
+        const title = isBroken ? p.brokenTitle : p.safeTitle;
+        const note  = isBroken ? p.brokenNote  : p.safeNote;
+        const toggleLabel = isBroken ? '&#10003; Guarantee ON' : '&#10007; Turn guarantee OFF';
+        const toggleCls = isBroken ? 'pill-risk' : 'pill-safe';
+        const savingsColor = (isBroken && accounts.savings < 0) ? '#c62828' : '#444';
+        const currentColor = (isBroken && p.key === 'atomicity') ? '#c62828' : '#444';
+
+        const linkHtml = p.link
+            ? '<p style="margin-top:8px;font-size:13px;"><a href="' + p.link + '" style="color:#5c6bc0;">' + p.linkLabel + '</a></p>'
+            : '';
+
+        document.getElementById('acid-card').innerHTML =
+            '<div class="detail-card">' +
+                '<h4>' + p.name + ' <span style="font-size:12px;color:#888;font-weight:400;">- ' + p.tagline + '</span></h4>' +
+                '<div style="margin:12px 0;">' +
+                    '<button class="pill ' + toggleCls + '" ' +
+                        'style="cursor:pointer;border:none;font-size:13px;padding:5px 14px;" ' +
+                        'onclick="toggleGuarantee(\'' + p.key + '\')">' +
+                        toggleLabel + 
+                    '</button>' +
+                '</div>' +
+                '<div class ="scenario-box" style="margin-bottom:12px;">' +
+                    '<strong style="display:block;margin-bottom:8px;font-size:13px;">' + title + '</strong>' +
+                    '<div style="display:flex;gap:16px;margin-bottom:10px;">' +
+                        '<div style="flex:1;background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:10px 14px;">' +
+                            '<div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Savings</div>' +
+                            '<div style="font-size:20px;font-weight:500;color:' + savingsColor + ';">' +
+                                (accounts.savings < 0 ? '-' : '') + '$' + Math.abs(accounts.savings) +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="flex:1;background:#fff;border:1px solid #e0e0e0;border-radius:4px;padding:10px 14px;">' +
+                            '<div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Current</div>' +
+                            '<div style="font-size:20px;font-weight:500;color:' + currentColor + ';">' +
+                                '$' + accounts.current +
+                            '</div>' +
+                        '</div>' +  
+                    '</div>' +
+                    '<p style="font-size:13px;margin-bottom:0;color:' + (isBroken ? '#c62828' : '#2e7d32') + ';">' + note + '</p>' +
+                '</div>' +
+                '<p style="font-size:13px;margin-bottom:0;">' + p.explanation + '</p>' +
+                linkHtml +
+            '</div>';
+        }
+
+    buildInteractive();
+
+    </script>
+
+</body>
+</html>

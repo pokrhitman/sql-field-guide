@@ -1,65 +1,74 @@
 # Changelog
 
-All notable changes to this project are documented here.
-
-Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-Dates are in YYYY-MM format. This project does not yet use version numbers —
-entries are organised by session date.
+All notable changes to this project will be documented in this file.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions.
 
 ---
 
-## 2026-06-07
+## 2026-06-09 — Session 03
 
 ### Added
-- **Topic: Concurrency Conflicts** (`topics/intermediate/concurrency-conflicts/index.html`)
-  Covers deadlocks and retry logic for SQL Server. Includes:
-  - Explainer tab: deadlock mental model, victim selection, how to reduce
-    deadlocks, and Snapshot update conflicts
-  - Interactive tab: seven-step animated timeline walking through a live
-    deadlock from start to SQL Server resolution
-  - Reference tab: error number table (1205 / 3960), three deadlock-reduction
-    pattern cards, full T-SQL retry pattern with syntax highlighting, and a
-    MySQL / PostgreSQL dialect note
-- **Shared stylesheet** (`assets/css/main.css`)
-  All presentation rules extracted from inline `<style>` blocks into a single
-  shared file. Covers reset, layout shell, header, sidebar, navigation, main
-  content area, tabs, concept blocks, interactive widgets, pills, scenario
-  boxes, reference cards, deadlock diagram, step-through timeline, code block,
-  data table, and site footer.
-- **Site footer** on root `index.html`
-  Educational purpose notice, best-effort accuracy disclaimer, CC BY-NC 4.0
-  licence reference, and link to the repository issues page for questions and
-  corrections.
-- **SEO metadata** on root `index.html` and both topic pages
-  `<meta name="description">`, `<meta name="keywords">`, Open Graph tags,
-  and `<link rel="canonical">` added to all three HTML files.
-- **Concurrency Conflicts** added to the sidebar on all pages.
+- **Topic: ACID Properties** (`topics/intermediate/acid-properties/index.html`)
+  First topic in the Transactions & Concurrency category, establishing the
+  conceptual foundation for Isolation Levels and Concurrency Conflicts.
+  Includes:
+  - Explainer tab: four properties threaded through a single bank transfer
+    scenario; "How the four properties connect" section explaining that A and D
+    share the transaction log, C depends on schema design, and I is the only
+    property with adjustable trade-offs
+  - Interactive tab: four property buttons with a toggle to switch each
+    guarantee on/off; account balance display showing the concrete failure mode
+    for each property (disappeared funds, negative balance, ghost read,
+    data loss after commit)
+  - Reference tab: four-property summary table (guarantee, failure mode, SQL
+    Server mechanism) and a notice box linking forward to Isolation Levels
 
 ### Changed
-- Root `index.html` refactored: inline `<style>` block replaced with
-  `<link rel="stylesheet" href="assets/css/main.css">`.
-- `topics/intermediate/isolation-levels/index.html` refactored: inline
-  `<style>` block replaced with shared CSS link.
-- `topics/intermediate/concurrency-conflicts/index.html` refactored on
-  creation: all styles moved to `main.css`, local `<style>` block removed.
+- Sidebar updated on all three existing HTML files to include ACID Properties
+  as the first link in the Transactions & Concurrency category:
+  `index.html` (root), `isolation-levels/index.html`,
+  `concurrency-conflicts/index.html`
+
+---
+
+## 2026-06-07 — Session 02
+
+### Added
+- **Topic: Concurrency Conflicts**
+  (`topics/intermediate/concurrency-conflicts/index.html`)
+  Covers deadlocks and retry logic with Explainer / Interactive / Reference
+  tabs. Interactive tab includes a seven-step animated deadlock timeline.
+  Reference tab includes T-SQL retry pattern for errors 1205 and 3960,
+  XACT_STATE() explanation, and dialect notes for MySQL and PostgreSQL.
+- Site footer on root `index.html`: educational purpose disclaimer,
+  CC BY-NC 4.0 licence reference, link to repository issues page.
+- SEO metadata on all three HTML files: `<meta name="description">`,
+  `<meta name="keywords">`, `<link rel="canonical">`, Open Graph tags.
+- `CHANGELOG.md` documenting Session 01 and Session 02. Follows Keep a
+  Changelog convention.
+
+### Changed
+- All shared styles extracted from inline `<style>` blocks into
+  `assets/css/main.css`. Removes inline styles from root `index.html`,
+  `isolation-levels/index.html`, and `concurrency-conflicts/index.html`.
+- `.error-table` renamed to `.data-table` to reflect reusable component
+  intent rather than specific content.
 - `switchTab()` updated on all topic pages to receive `event` as an explicit
   parameter rather than relying on the implicit global `event` object.
-- `.error-table` renamed to `.data-table` in both `main.css` and the
-  Concurrency Conflicts HTML for a more reusable, component-level name.
 
 ### Fixed
-- `<hmtl>` typo corrected to `<html>` in root `index.html`.
+- `<hmtl>` opening tag typo in root `index.html` corrected to `<html>`.
 - `font-size: #555` corrected to `font-size: 13px` in `.notice` rule
   (value was a colour code, not a size).
 - `padding: 16 px 0` corrected to `padding: 16px 0` in `nav` rule
   (space inside the unit broke the declaration).
 - `Begginer` corrected to `Beginner` in root `index.html` sidebar button.
-- HTML comment syntax corrected throughout root `index.html`: `<! -- -->` 
+- HTML comment syntax corrected throughout root `index.html`: `<! -- -->`
   replaced with valid `<!-- -->` on all instances.
 
 ---
 
-## 2026-06-06 — Session 01
+## 2026-05-06 — Session 01
 
 ### Added
 - Initial project structure: `index.html` (site shell and welcome page),
@@ -85,11 +94,19 @@ entries are organised by session date.
 
 ## Planned
 
-- Enable GitHub Pages — site to go live at
-  `https://pokrhitman.github.io/sql-field-guide/`
-- Extract shared JavaScript (`toggleTier`, `switchTab`) from topic HTML files
-  into `assets/js/nav.js` and `assets/js/tabs.js`
-- Additional Intermediate topics from current Coursera module:
-  - ACID Properties
-  - DML Operations (INSERT / UPDATE / DELETE)
-- Beginner tier: first topics to be scoped
+- **JS refactor:** extract `toggleTier()` and `switchTab()` from all topic
+  pages into `assets/js/nav.js` and `assets/js/tabs.js`. Deferred until the
+  fourth topic page is added, at which point the refactor will be done first
+  before any new content lands.
+- **New topic — Transactions:** BEGIN, COMMIT, ROLLBACK, SAVEPOINT — the undo
+  stack mental model. Next in the Transactions & Concurrency sequence after
+  ACID Properties.
+- **New topic — Locks:** shared vs exclusive locks, lock granularity. Provides
+  the mechanical foundation that makes Isolation Levels fully readable.
+- **New topic — DML Operations:** INSERT, UPDATE, DELETE — first candidate for
+  the Beginner tier.
+- **Contribution standard document:** folder structure, JavaScript data array
+  format, tab content requirements, tone guide. Prerequisite before recruiting
+  collaborators.
+- **README update:** add live GitHub Pages URL and update current content
+  listing to include ACID Properties.

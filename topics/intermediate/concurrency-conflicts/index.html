@@ -34,6 +34,7 @@
             <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
             <div class="tier-section open" id="tier-intermediate">
                 <div class="category-label">Transactions &amp; Concurrency</div>
+                <a class="topic-link" href="../acid-properties/index.html">ACID Prorperties</a>
                 <a class="topic-link" href="../isolation-levels/index.html">Isolation Levels</a>
                 <a class="topic-link active" href="index.html">Concurrency Conflicts</a>
             </div>
@@ -291,9 +292,9 @@
 
 <span class="c-keyword">DECLARE</span> @attempt    <span class="c-number">INT</span> = <span class="c-number">1</span>;
 <span class="c-keyword">DECLARE</span> @maxTries   <span class="c-number">INT</span> = <span class="c-number">3</span>;
-<span class="c-keyword">DECLARE</span> @success    <span class="c-nu,ber">INT</span> = <span class="c-number">0</span>;
+<span class="c-keyword">DECLARE</span> @success    <span class="c-number">INT</span> = <span class="c-number">0</span>;
 
-<span class="c-keyword">WHILE</span> @attempt &alt;= @maxTries  <span class="c-number">0</span> @success <span class="c-number">1</span>;
+<span class="c-keyword">WHILE</span> @attempt &lt;= @maxTries  <span class="c-number">0</span> @success <span class="c-number">1</span>;
 <span class="c-keyword">BEGIN</span>
     <span class="c-keyword">BEGIN TRY</span>
         <span class="c-keyword">BEGIN TRANSACTION</span>;
@@ -311,7 +312,7 @@
         <span class="c-keyword">IF</span> <span class="c-keyword">XACT_STATE</span> &lt;&gt; <span class="c-number">0</span>
             <span class="c-keyword">ROLLBACK TRANSACTION</span> <span class="c-comment">-- Clean up before retrying</span>
 
-        <span class="c-keyword">IF</span> ERROR_NUMBER() <span class="c-keyword">IN</span> (<span class="c-number">1205</span>, <span class="c-number">3960/span>) <span class="c-keyword">AND</span> @attempt &lt; @maxTries
+        <span class="c-keyword">IF</span> ERROR_NUMBER() <span class="c-keyword">IN</span> (<span class="c-number">1205</span>, <span class="c-number">3960</span>) <span class="c-keyword">AND</span> @attempt &lt; @maxTries
         <span class="c-keyword">BEGIN</span>
             <span class="c-comment">-- Retryable error: wait briefly, then try again
             -- WAITFOR adds a small delay so a retry does not hit the same
