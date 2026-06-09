@@ -11,7 +11,7 @@
     <meta property = "og:title"         content="ACID Properties - SQL Field Guide"/>
     <meta property = "og:description"   content="The four guarantees every SQL Server transactions must provide - and what breaks without each one."/>
     <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/acid-properties" />
-    <link rel = "stylesheet" href = "../../../assets/css/main.css" />   
+    <link rel = "stylesheet" href = "../../../assets/css/main.css" />
 </head>
 <body>
 
@@ -270,23 +270,11 @@
         </main>
     </div>
 
- <script>
+<script src="../../../assets/js/nav.js"></script>
+<script src="../../../assets/js/tabs.js"></script>
+<script>
 
-/* -- Sidebar toggle -- */
-function toggleTier(id) {
-    const section = document.getElementById('tier-' + id);
-    section.classList.toggle('open');
-}
-
-/* -- Tab switcher -- */
-function switchTab(name, event) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('panel-' + name).classList.add('active');
-    event.target.classList.add('active');
-}
-
-    /* -- ACID interactive data -- */ 
+/* -- ACID interactive data -- */ 
     const properties = [
         {
             key: 'atomicity',

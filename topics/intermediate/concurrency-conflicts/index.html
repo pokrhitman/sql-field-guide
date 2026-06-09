@@ -5,14 +5,9 @@
     <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Concurrency Conflicts - SQL Field Guide</title>
     <meta name ="description" content="Understand SQL Server deadlocks and retry logic: how deadlocks form, how SQL Server resolves them and how to write application code that handles commit failures gracefully." />
-
-    <<meta name = "keywords" content ="SQL, T-SQL, SQL Server, Concurrency, Snapshot, deadlock" />
-    
+    <meta name = "keywords" content ="SQL, T-SQL, SQL Server, Concurrency, Snapshot, deadlock" />
     <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/concurrency-conflicts/" />
-
     <link rel = "stylesheet" href = "../../../assets/css/main.css" />
-
-    
 </head>
 <body>
 
@@ -68,9 +63,9 @@
 
             <!-- Tab switcher -->
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('explainer')">Explainer</button>
-                <button class="tab-btn"        onclick="switchTab('interactive')">Interactive</button>
-                <button class="tab-btn"        onclick="switchTab('reference')">Reference</button>
+                <button class="tab-btn active" onclick="switchTab('explainer', event)">Explainer</button>
+                <button class="tab-btn"        onclick="switchTab('interactive', event)">Interactive</button>
+                <button class="tab-btn"        onclick="switchTab('reference', event)">Reference</button>
             </div>
 
             <!-- ======================================== -->
@@ -357,21 +352,9 @@
         </main>
     </div>
 
+    <script src="../../../assets/js/nav.js"></script>
+    <script src="../../../assets/js/tabs.js"></script>
     <script>
-
-    /* -- Sidebar toggle -- */
-    function toggleTier(id) {
-        const section = document.getElementById('tier-' + id);
-        section.classList.toggle('open');
-    }
-    
-    /* -- Tab switcher -- */
-    function switchTab(name) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('panel-' + name).classList.add('active');
-        event.target.classList.add('active');
-    }
 
     /*  ===========================================================
         Interactive: Deadlock step-through widget
@@ -484,7 +467,7 @@
             'Step ' + (index + 1) + ' of ' + steps.length;
 
         document.getElementById('btn-prev').disabled = (index === 0);
-        document.getElementById('btn-prev').disabled = (index === steps.length - 1);
+        document.getElementById('btn-next').disabled = (index === steps.length - 1);
     }
 
     function changeStep(delta) {

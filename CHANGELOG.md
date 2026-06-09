@@ -5,6 +5,42 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-09 — Session 04
+
+### Added
+- Social buttons (GitHub, LinkedIn) in home page header. Ghost button
+  style with inline SVG icons, pill shape, hover fill animation. Grouped
+  in .header-social wrapper div.
+- .social-btn and .header-social classes added to main.css under the
+  Header section.
+- Search placeholder comment block in sidebar nav of root index.html.
+  Documents Lunr.js implementation outline and recommended activation
+  threshold (10+ topics). HTML stub is commented out and ready to activate.
+- assets/js/nav.js: shared toggleTier() function for sidebar navigation,
+  used by all four HTML files.
+- assets/js/tabs.js: shared switchTab(name, event) function for tab
+  switching, used by all three topic pages.
+
+### Changed
+- All four HTML files load nav.js via <script> tag above the inline
+  script block. Inline toggleTier() removed from all four files.
+  Simplified version used everywhere — arrow-update logic removed.
+- All three topic pages load tabs.js via <script> tag above the inline
+  script block. Inline switchTab() removed from all three files.
+- Tab button onclick attributes on isolation-levels and
+  concurrency-conflicts updated to pass event explicitly:
+  switchTab('name', event). Aligns with the pattern already on
+  acid-properties.
+
+### Fixed
+- panel-explainer id and active class were missing from the Explainer
+  panel in isolation-levels/index.html — panel was labelled panel-reference,
+  causing duplicate ids and broken tab switching.
+- btn-next never disabled on last step in concurrency-conflicts — renderStep()
+  referenced btn-prev twice. Second line corrected to btn-next.
+- Stray < before meta keywords tag in concurrency-conflicts/index.html.
+- Beginner spelling corrected in root index.html sidebar (Begginer → Beginner).
+
 ## 2026-06-09 — Session 03
 
 ### Added

@@ -32,6 +32,38 @@ header h1  { font-size: 18px; font-weight: 500; }
 header a   { color: #aac4ff; font-size: 13px; text-decoration: none; }
 header a:hover { text-decoration: underline; }
 
+/* Social buttons (home page only) */
+.header-social {
+    display: flex;
+    gap: 8px; 
+    align-items: center;
+}
+.social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 13px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #aac4ff;
+    border: 1px solid #aac4ff;
+    border-radius: 20px;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, color 0.15s;
+}
+.social-btn:hover {
+    background: #aac4ff;
+    color: #1a1a2e;
+    text-decoration: none;
+}
+.social-btn svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+    flex-shrink: 0;
+}
+
 /* -- Layout shell -- */
 .layout {
     display: flex;
