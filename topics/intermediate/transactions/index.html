@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>transactions - SQL Field Guide</title>
+
+    <meta name ="description" content="Understand SQL Server transactions: BEGIN, COMMIT, ROLLBACK and SAVEPOINT explained through the undo stack model, with a step-through interactive widget." />
+
+    <meta name = "keywords" content ="SQL, T-SQL, SQL Server, transactions, BEGIN TRANSACTION, COMMIT, ROLLBACK, SAVEPOINT, undo stack" />
+
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/transactions/" />
+
+    <meta property = "og:type"          content="website"/>
+    <meta property = "og:title"         content="transactions - SQL Field Guide"/>
+    <meta property = "og:description"   content="BEGIN, COMMIT, ROLLBACK and SAVEPOINT explained using the undo stack mental model. Includes a step-through interactive widget and T-SQL reference."/>
+    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/transactions" />
+
+    <link rel = "stylesheet" href = "../../../assets/css/main.css" />
+</head>
+<body>
+
+<!--- Header --->
+<header>
+    <h1>SQL Field Guide</h1>
+    <a href="../../../index.html" style="margin-left: 24px;">&#8592; Home</a>
+</header>
+
+<div class="layout">
+
+    <!--- Sidebar --->
+    <nav>
+        <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Beginner</button>
+        <div class="tier-section" id="tier-beginner">
+            <div class="category-label">Coming soon</div>
+        </div>
+
+        <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
+        <div class="tier-section open" id="tier-intermediate">
+            <div class="category-label">Transactions &amp; Concurrency</div>
+            <a class="topic-link" href="../acid-properties/index.html">ACID Properties</a>
+            <a class="topic-link active" href="index.html">Transactions</a>
+            <a class="topic-link" href="../isolation-levels/index.html">Isolation Levels</a>
+            <a class="topic-link" href="../concurrency-conflicts/index.html">Concurrency Conflicts</a>
+        </div>
+
+        <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
+        <div class="tier-section" id="tier-advanced">
+            <div class="category-label">Coming soon</div>
+        </div>
+    </nav>
+    
+<!---Main content -->
+<main>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="../../../index.html">Home</a> &rsaquo;
+        Intermediate &rsaquo;
+        Transactions &amp; Concurrency &rsaquo;
+        Transactions
+    </div>
+
+    <h2>Transactions</h2>
+
+    <div class="prereq">
+        <strong>Before this topic:</strong> you should be comfortable writing 
+        basic SELECT, INSERT, UPDATE and DELETE queries. It also helps to have
+        read <a href="../acid-properties/index.html" style="color: #5c6bc0;">ACID Properties</a>
+        first - this stage explains the mechanics behind the gurantees that 
+        ACID Properties introduces.
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('explainer', event)">Explainer</button>
+        <button class="tab-btn"        onclick="switchTab('interactive', event)">Interactive</button>
+        <button class="tab-btn"        onclick="switchTab('reference', event)">Reference</button>
+    </div>
+
+        <!-- ========================================== -->
+        <!-- EXPLAINER TAB                              -->
+        <!-- ========================================== -->
+        <div class="tab-panel active" id="panel-explainer">
+
+            <p>
+                A transaction is a unit of work: one or more SQL statements that 
+                the database treats as a single, indivisible operation. Either every 
+                satement in the transaction succceeds and the changes are
+                permanent, or something goes wrong and every change is undone as if 
+                the transaction never ran. There is no middle ground.
+            </p>
+            <p>
+                Four keywords control the lifecycle of a transaction in SQL Server.
+                Before looking at the syntax, it helps to have a mental mode That
+                makes all four obvious.
+            </p>
+
+            <h3>The undo stack</h3>
+            <p>
+                Think of an active transaction as a stack of changes. Every INSERT,
+                UPDATE or DELETE you execute inside the transaction is pushed onto
+                the stack. The stack is private to your transaction - no other 
+                session can see it. SQL Server records everything needed to reverse
+                each change.
+            </p>
+            <p>
+                When the transaction ends, one of two things happens to the stack:
+            </p>
+            <div class="concept-block">
+                <h4>COMMIT - discard the stack</h4>
+                <p>The changes are written permanently to the database. The stack
+                is no longer needed and is discarded. There is nothing left to undo.</p>              </p>
+            </div>
+            <div class="concept-block">
+                <h4>ROLLBACK - pop the entire stack</h4>
+                <p>Every change on the stack is reversed, in reverse order, back to
+                the state before the transaction started. the database is restored
+                exactly as it was.</p>
+            </div>
+            <p>
+                This mental model also explains why uncomitted changes are invisible
+                to other transactions: the stack is private. Other sessions only see
+                the data after a COMMIT makes the changes public.
+            </p>
+
+            <h3>The four keyords</h3>
+            <div class="concept-block">
+                <h4>BEGIN TRANSACTION</h4>
+                <p>Opens the transaction and starts the stack. Every statement 
+                from this point forwards is part of the transaction until it is 
+                ended with COMMIT and ROLLBACK.</p>
+            </div>
+            <div class="concept-block">
+                <h4>COMMIT</h4>
+                <p>Ends the transaction successfully. All changes are made 
+                permanent and visible to other sessions. The stack is discarded.</p>
+            </div>
+            <div class="concept-block">
+                <h4>ROLLBACK</h4>
+                <p>Ends the transaction by undoing all changes. The database 
+                returns to the state it was before BEGIN TRANSACTION. Typically
+                used in a CATCH block when an error is detected.</p>
+            </div>
+            <div class="concept-block">
+                <h4>SAVE TRANSACTION (savepoint)</h4>
+                <p>Places a named marker in the stack without ending the 
+                transaction. A subsequent ROLLBACK TO that name pops the stack 
+                back to the marker - undoing only the changes made after it - 
+                while leaving the transaction open. Changes made before the 
+                savepoint are preserved.</p>
+            </div>
+
+            <h3>Why savepoints exist: a real example</h3>
+            <p>
+                An e-commerce platform processes an incoming order in three steps,
+                all inside one transaction:
+            </p>
+            <p>
+                <strong>Step 1</strong> - Insert a new row into the Orders table.<br />
+                <strong>Step 2</strong> - Deduct the oredered quantity from the 
+                Inventory table.
+                <strong>Step 3</strong> - Insert a row into the FullfilmentLog table
+                recording the outcome.
+            </p>
+            <p>
+                The business rule is: if Step 2 fails because the item is out of 
+                stock, do not cancel the order - keep the order record and log a 
+                backorder status instead. Only the stock deduction should be undone.
+            </p> 
+            <p>
+                Without a savepoint, any error would trigger a full ROLLBACK,
+                losing the order record along with the failed stock deduction. With 
+                a savepoint placed after Step 1, the transaction can roll back to
+                that marker on a Step 2 failure, preserving the order record, and 
+                then continue with Step 3 using the backorder outcome.
+            </p>
+            <p>
+                The Interactive tab walks through this scenario step by step,
+                showing the undo stack at each point.
+            </p>
+            
+            </div>
+
+            <!-- ========================================== -->
+            <!-- INTERACTIVE TAB                            -->
+            <!-- ========================================== -->
+            <div class="tab-panel" id="panel-interactive">
+
+                <p style="margin-bottom:16px; font-size:13px; color:#666; ">
+                    Step through the order fulfilment transaction. Whatch the undo stack
+                    on the right update at each step - showing what SQL Server would 
+                    need to reverse if a ROLLBACK were called at that moment.
+                </p>
+
+                <div class="step-counter" id="step-counter">Step 1 of 8</div>
+
+                <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+
+                    <!-- SQL column -->
+                    <div style="flex: 1; min-width: 0;">
+                        <h5 style="font-size: 12px; font-weight: 600; text-transform: uppercase;
+                                    letter-spacing: 0.05em; color: #3c3c8e; border-bottom: 2px solid #5c6bc0;
+                                    padding-bottom: 4px; margin-bottom: 8px;">
+                            SQL Statements
+                        </h5>
+                        <div id="tl-sql"></div>
+                    </div>
+
+                    <!-- Stack column -->
+                    <div style="flex: 1; min-width: 0;">
+                        <h5 style="font-size: 12px; font-weight: 600; text-transform: uppercase;
+                                    letter-spacing: 0.05em; color: #888; border-bottom: 2px solid #e0e0e0;
+                                    padding-bottom: 4px; margin-bottom: 8px;">
+                            Undo Stack
+                        </h5>
+                        <div id="stack-display"></div>
+                    </div>
+
+                </div>
+
+                <div class="step-narrative" id="step-narrative"></div>
+
+                <div class="step-controls" style="margin-top: 16 px;">
+                    <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&#8592; Previous</button> 
+                    <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &#8594;</button> 
+                    <button class="step-btn secondary" onclick="resetSteps()">&#8635; Restart</button> 
+                </div>
+            
+            </div>
+
+        <!-- ======================================== -->
+        <!-- REFERENCE TAB                            -->
+        <!-- ======================================== -->
+        <div class="tab-panel" id="panel-reference">
+
+            <p style="margin-bottom: 20px; font-size: 13px; color: #666; ">
+                A compact cheat sheet. Return here after working through the 
+                Explainer and Interactive sections.
+            </p>
+
+            <!-- Syntax summary -->
+            <h3 style="margin-top: 0;">Syntax patterns</h3>
+
+            <div class="ref-card">
+                <h4>Basic transaction</h4>
+                <code>BEGIN TRANSACTION;</code>
+                <p>The simplest pattern: open a transaction, do the work, commit.
+                If anything goes wrong before COMMIT, call ROLLBACK to undo 
+                everything.</p>
+            </div>
+
+            <div class="ref-card">
+                <h4>Transaction with error handling</h4>
+                <code>BEGIN TRY ... END TRY BEGIN CATCH ... END CATCH;</code>
+                <p>Wrap the transaction in a TRY/CATCH block. If any statement 
+                raises an error, execution jumps to the CATCH block. Check 
+                XACT_STATE() before rolling back - after some errors SQL Server 
+                has already rolled back automatically.</p>
+            </div>
+
+            <div class="ref-card">
+                <h4>Savepoint with a partial rollback</h4>
+                <code>SAVE TRANSACTION savepoint_name;</code>
+                <p>Place a named marker in the transaction. Use 
+                ROLLBACK TRANSACTION savepoint_name to undo only the work done 
+                after a marker, leaving the transaction open and earlier
+                changes intact.</p>
+            </div>
+
+            <!--  Dialect comparison -->
+            <h3>Savepoint syntax across dialetcs</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+                Standard SQL, MySQL and PostgreSQL use a different savepoint 
+                syntax to T-SQL. If your coursework or prior experience used 
+                a different database, the keywords will look unfamiliar here.
+            </p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Standard SQL / MySQL / PostgreSQL</th>
+                        <th>T-SQL (SQL Server)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Create a savepoint</td>
+                        <td><code>SAVEPOINT name</code></td>
+                        <td><code>SAVE TRANSACTION name</code></td>
+                    </tr>
+                    <tr>
+                        <td>Roll back to savepoint</td>
+                        <td><code>ROLLBACK TO SAVEPOINT name</code></td>
+                        <td><code>ROLLBACK TRANSACTION name</code></td>
+                    </tr>
+                    <tr>
+                        <td>Release a savepoint</td>
+                        <td><code>RELEASE SAVEPOINT name</code></td>
+                        <td>Not supported - saveppoints are discarded automatically on COMMIT or full ROLLBACK</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="notice">
+                <strong>T-SQL trap: ROLLBACK TRANSACTION with and without a name
+                behave differently.</strong><br />
+                <code>ROLLBACK TRANSACTION</code> - no argument - undoes 
+                <em>everything</em> back to the BEGIN and ends the transaction.<br />
+                <code>ROLLBACK TRANSACTION name</code> - with a savepoint name - 
+                undoes only the work done after that savepoint and 
+                <em>leaves the transaction open</em>.<br /><br />
+                The keyword is identical. The presence or absence of the savepoint 
+                name is the only difference. This is a common source of bugs when
+                moving from other databases to SQL Server, or when reading T-SQL 
+                code for the first time.
+            </div>
+
+            <!-- Full syntax reference -->
+            <h3>T-SQL syntax reference</h3>
+
+        <div class="code-block"><span class="c-comment">-- Basic transaction</span>
+<span class="c-keyword">BEGIN TRANSACTION</span>;
+
+    <span class="c-keyword">INSERT INTO</span> Orders (CustomerID, Total) <span class="c-keyword">VALUES</span> (<span class="c-number">101</span>, <span class="c-number">249.99</span>);
+    <span class="c-keyword">UPDATE</span> Inventory <span class="c-keyword">SET</span> Stock = Stock - <span class="c-number">1</span>, <span class="c-keyword">WHERE</span> ProductID = <span class="c-number">42</span>; 
+
+<span class="c-keyword">COMMIT</span>;
+
+
+<span class="c-comment">-- Transaction with TRY/ CATCH and XACT_STATE() check</span>
+<span class="c-keyword">BEGIN TRY</span>
+    <span class="c-keyword">BEGIN TRANSACTION</span>;
+
+        <span class="c-keyword">INSERT INTO</span> Orders (CustomerID, Total) <span class="c-keyword">VALUES</span> (<span class="c-number">101</span>, <span class="c-number">299.99</span>);
+        <span class="c-keyword">UPDATE</span> Inventory <span class="c-keyword">SET</span> Stock = Stock - <span class="c-number">1</span> <span class="c-keyword">WHERE</span> ProdcutID = <span class="c-number">42</span>;
+        
+    <span class="c-keyword">COMMIT</span>;
+<span class="c-keyword">END TRY</span>
+<span class="c-keyword">BEGIN CATCH</span>
+    <span class="c-keyword">IF</span> <span class="c-keyword">XACT_STATE</span>() &lt;&gt; <span class="c-number">0</span>
+        <span class="c-keyword">ROLLBACK TRANSACTION</span>;
+    <span class="c-keyword">THROW</span>;
+<span class="c-keyword">END CATCH</span>;
+
+
+<span class="c-comment">-- Savepoint with partial rollback</span>
+<span class="c-keyword">BEGIN TRANSACTION</span>;
+
+    <span class="c-keyword">INSERT INTO</span> Orders (CustomerID, Total) <span class="c-keyword">VALUES</span> (<span class="c-number">101</span>, <span class="c-number">249.99</span>;
+
+    <span class="c-keyword">SAVE TRANSACTION</span> after_order; <span class="c-comment">-- marker placed here</span>
+
+    <span class="c-keyword">BEGIN TRY</span>
+        <span class="c-keyword">UPDATE</span> Inventory <span class="c-keyword">SET</span> Stock = Stock - <span class="c-number">1</span><span class="c-keyword">WHERE</span> ProductID = <span class="c-number">42</span>;
+    <span class="c-keyword">END TRY</span>
+    <span class="c-keyword">BEGIN CATCH</span>
+        <span class="c-keyword">ROLLBACK TRANSACTION</span> after_order; <span class="c-comment">-- undo only from marker</span>
+        <span class="c-keyword">INSERT INTO</span> FullfilmentLog (OrderID, Status) <span class="c-keyword">VALUES</span> (<span class="c-number">101</span>, <span class="c-string">'Backorder'</span>);
+    <span class="c-keyword">END CATCH</span>
+
+<span class="c-keyword">COMMIT</span>;</div>
+
+            <!--XACT_STATE reminder-->
+            <div class="ref-card" style="margin-top: 4px;">
+                <h4>XACT_STATE() why it matters in CATCH blocks</h4>
+                <p>
+                    Returns <code>1</code> if a transaction is open and commitable,
+                    <code>-1</code> if it is open but uncommittable (must be rolled
+                    back), or <code>0</code> if there is no active transaction.
+                    Always check before calling ROLLBACK in a CATCH block - calling
+                    ROLLBACK when no transaction is active raises a second error.
+                    See the retry pattern on the 
+                    <a href="../concurrency-conflicts/index.html" style="color: #5c6bc0;">Concurrency Conflicts</a>
+                    page for a full example.
+                </p>
+            </div>
+
+            <!-- Key termns-->
+            <h3>Key terms</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>Meaning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>BEGIN TRANSACTION</code></td>
+                        <td>Opens a transaction. All subsequent statements are part of this unit of work.</td>
+                    </tr>
+                    <tr>
+                        <td><code>COMMIT</code></td>
+                        <td>Makes all changes permanent and visible to other sessions. Ends the transaction.</td>
+                    </tr>
+                    <tr>
+                        <td><code>ROLLBACK</code></td>
+                        <td>Undoes all changes back to the BEGIN (or to a named savepoint). Ends the transaction.</td>
+                    </tr>
+                    <tr>
+                        <td><code>SAVE TRANSACTION</code></td>
+                        <td>Places a named marker inside an open transaction. Does not end the transaction.</td>
+                    </tr>
+                    <tr>
+                        <td><code>ROLLBACK TO savepoint</code></td>
+                        <td>Undoes changes made after the named savepoint. Transaction remains open.</td>
+                    </tr>
+                    <tr>
+                        <td><code>XACT_STATE()</code></td>
+                        <td>Returns the state of the current transaction: 1 (active), -1 (uncommittable), 0 (none).</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div><!-- /panel-reference-->
+
+    </main>
+</div>
+
+<script src="../../../assets/js/nav.js"></script>
+<script src="../../../assets/js/tabs.js"></script>
+<script>
+
+/* =======================================================
+    Interactive: Undo stack step-through widget
+
+    Each step describes:
+    -sql[]: the SQL statement rows and their display class
+    - stack[]: what is currently on the undo stack
+    - narrative: plain-English explanation of this step
+   ======================================================= */ 
+
+const sqlSteps = [
+    'BEGIN TRANSACTION;',
+    'INSERT INTO Orders ... ;',
+    'SAVE TRANSACTION after_order;',
+    'UPDATE Inventory SET Stock = Stock - 1 ... ;',
+    '-- Stock check fails: item out of stock',
+    'ROLLBACK TRANSACTION after order;',
+    'INSERT INTO FulfilemntLog ... {\'Backorder\'};',
+    'COMMIT;',
+];
+
+/* Stack state at each step.
+   Each entry is an array of objects: { label, type }
+   type controls color: 'change' (blue), 'marker' (amber), 'empty' (grey) */
+const steps = [
+    {
+        sql: ['active-a', '', '', '', '', '', '', ''],
+        stack: [],
+        narrative: 'BEGIN TRANSACTION opens the transaction. The undo stack is empty - no changes have been made yet. SQL Server is ready to record every change from this point forward.',
+    },
+    {
+        sql: ['done', 'active-a', '', '', '', '', '', ''],
+        stack: [
+            {label: 'INSERT Orders (OrderID=1001, CustomerID=101, Total=$249.99)', type: 'change'},
+        ],
+        narrative: 'The order record is inserted. SQL Server pushes the change onto the undo stack, recording everything needed to reverse it. A ROLLBACK right now would delete this row.',
+    },
+    {
+        sql: ['done', 'done', 'active-a', '', '', '', '', ''],
+        stack: [
+            {label: 'INSERT Orders (OrderID=1001, CustomerID=101, Total=$249.99)', type: 'change'},
+            {label: '-- SAVEPOINT: after_order', type: 'marker'},
+        ],
+        narrative: 'SAVE TRANSACTION places a named marker on the stack. No data has changed - this is purely a bookmark. A ROLLBACK TO after_order will undo everything above this marker, but leave the INSERT below it intact.',
+    },
+    {
+        sql: ['done', 'done', 'done', 'active-a', '', '', '', ''],
+        stack: [
+            {label: 'INSERT Orders (OrderID=1001, CustomerID=101, Total=$249.99)', type: 'change'},
+            {label: '-- SAVEPOINT: after_order', type: 'marker'},
+            {label: 'UPDATE Inventory SET Stock = 0 WHERE ProductID=42', type: 'change'},
+        ],
+        narrative: 'The stock deduction is attempted and pushed onto the stack. Now there are two changes above and below the savepoint marker. At this moment the transaction discovers that Stock is already 0 - the item is out of stock.',
+    },
+    {
+        sql: ['done', 'done', 'done', 'done', 'active-a', '', '', ''],
+        stack: [
+            {label: 'INSERT Orders (OrderID=1001, CustomerID=101, Total=$249.99)', type: 'change'},
+            {label: '-- SAVEPOINT: after_order', type: 'marker'},
+            {label: 'UPDATE Inventory SET Stock = 0 WHERE ProductID=42', type: 'change'},
+        ],
+        narrative: 'The business logic detects the out-of-stock condition. Without a savepoint, the only option would be a full ROLLBACK - losing the order record. With the savepoint in place, a partial rollback is possible.',
+    },
+    {
+        sql: ['done', 'done', 'done', 'done', 'done', 'active-a', '', ''],
+        stack: [
+            {label: 'INSERT Orders (OrderID=1001, CustomerID=101, Total=$249.99)', type: 'change'},
+            {label: '-- SAVEPOINT: after_order', type: 'marker'},
+        ],
+        narrative: 'ROLLBACK TRANSACTION after_order pops the stack back to the marker. The failed stock deduction is reversed. The order record INSERT - which is below the marker - survives. The transaction is still open.',
+    },
+    {
+        sql: ['done', 'done', 'done', 'done', 'done', 'done', 'active-a', ''],
+        stack: [
+            {label: 'INSERT Orders (OrderID=1001, CustomerID=101, Total=$249.99)', type: 'change'},
+            {label: '-- SAVEPOINT: after_order', type: 'marker'},
+            {label: 'INSERT FulfilmentLog (OrderID=1001, Status=\'Backorder\')', type: 'change' },
+        ],
+        narrative: 'A backorder log entry is inserted instead. The transaction now has two changes: the original order record and the backorder log. Both will be committed together.',
+    },
+        {
+        sql: ['done', 'done', 'done', 'done', 'done', 'done', 'done', 'active-a'],
+        stack: [],
+        narrative: 'COMMIT makes both changes permanent and visible to other sessions. The undo stack is discarded - there is nothing left to undo. The order is recorded, the stock update is correctly skipped, and the backorder is logged.',
+    },
+];
+
+let currentStep = 0;
+
+function buildTimeLine() {
+    const col = document.getElementById('tl-sql');
+    col.innerHTML = '';
+    sqlSteps.forEach((text, i) => {
+        const div = document.createElement('div');
+        div.className = 'tl-step';
+        div.id = 'sql-' + i;
+        div.textContent = text;
+        col.appendChild(div);
+    });
+}
+
+function renderStack(stackItems) {
+    const display = document.getElementById('stack-display');
+    if (stackItems.length === 0) {
+        display.innerHTML = 
+            '<div class="tl-step" style="color: #aaa; font-style: italic; font-family: sans-serif;">' +
+            'Stack is empty' + 
+            '</div>';
+        return;
+    }
+    display.innerHTML = '';
+    stackItems.forEach(item => {
+        const div = document.createElement('div');
+        if (item.type === 'marker') {
+            div.className = 'tl-step active-b';
+            div.style.fontFamily = 'sans-serif';
+            div.style.fontSize = '12px';
+        } else {
+            div.className = 'tl-step active-a';
+        }
+        div.textContent = item.label;
+        display.appendChild(div);
+    });
+}
+
+function renderStep(index) {
+    const step = steps[index];
+
+    step.sql.forEach((cls, i) => {
+        const el = document.getElementById('sql-' + i);
+        el.className = 'tl-step' + (cls ? ' ' + cls : '');
+    });
+
+    renderStack(step.stack);
+
+    document.getElementById('step-narrative').textContent = step.narrative;
+    document.getElementById('step-counter').textContent = 
+        'Step ' + (index + 1) + ' of ' + steps.length;
+
+    document.getElementById('btn-prev').disabled = (index === 0);
+    document.getElementById('btn-next').disabled = (index === steps.length - 1);
+}
+
+function changeStep(delta) {
+    currentStep = Math.max(0, Math.min(steps.length - 1, currentStep + delta));
+    renderStep(currentStep);
+}
+
+function resetSteps() {
+    currentStep = 0;
+    renderStep(0);
+}
+
+buildTimeLine();
+renderStep(0);
+
+</script>
+
+</body>
+</html>

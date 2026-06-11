@@ -5,6 +5,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-11 — Session 05
+
+### Added
+- **Topic: Transactions** (`topics/intermediate/transactions/index.html`)
+  Second topic in the Transactions & Concurrency sequence. Includes:
+  - Explainer tab: undo stack mental model, the four keywords (BEGIN
+    TRANSACTION, COMMIT, ROLLBACK, SAVE TRANSACTION) mapped onto it, and
+    an e-commerce order fulfilment scenario motivating savepoint usage
+  - Interactive tab: two-column step-through widget showing SQL statements
+    on the left and the live undo stack on the right across eight steps,
+    including a partial rollback to a savepoint and final commit
+  - Reference tab: three syntax pattern cards, savepoint dialect comparison
+    table (Standard SQL / MySQL / PostgreSQL vs T-SQL), warning notice on
+    ROLLBACK TRANSACTION with and without a savepoint name, full T-SQL
+    syntax reference block, XACT_STATE() reminder card, and key terms table
+- Open Graph meta tags backfilled to isolation-levels/index.html and
+  concurrency-conflicts/index.html — both pages were missing them.
+
+### Changed
+- Sidebar updated on all four existing HTML files to include Transactions
+  as the second link in the Transactions & Concurrency category.
+
+### Fixed
+- Removed three empty placeholder JS files from
+  topics/intermediate/isolation-levels/ (explainer.js, interactive.js,
+  reference.js) — orphaned from Session 01 folder structure, never
+  referenced by any page.
+
+---
+
 ## 2026-06-09 — Session 04
 
 ### Added
@@ -130,19 +160,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ## Planned
 
-- **JS refactor:** extract `toggleTier()` and `switchTab()` from all topic
-  pages into `assets/js/nav.js` and `assets/js/tabs.js`. Deferred until the
-  fourth topic page is added, at which point the refactor will be done first
-  before any new content lands.
-- **New topic — Transactions:** BEGIN, COMMIT, ROLLBACK, SAVEPOINT — the undo
-  stack mental model. Next in the Transactions & Concurrency sequence after
-  ACID Properties.
 - **New topic — Locks:** shared vs exclusive locks, lock granularity. Provides
   the mechanical foundation that makes Isolation Levels fully readable.
 - **New topic — DML Operations:** INSERT, UPDATE, DELETE — first candidate for
   the Beginner tier.
+- **Accessibility refactor:** add aria-label attributes to interactive
+  controls and navigation elements across all pages. Deferred to a
+  dedicated session.
 - **Contribution standard document:** folder structure, JavaScript data array
   format, tab content requirements, tone guide. Prerequisite before recruiting
   collaborators.
-- **README update:** add live GitHub Pages URL and update current content
-  listing to include ACID Properties.
+
