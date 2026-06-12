@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8" />
     <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>transactions - SQL Field Guide</title>
+    <title>Transactions - SQL Field Guide</title>
 
     <meta name ="description" content="Understand SQL Server transactions: BEGIN, COMMIT, ROLLBACK and SAVEPOINT explained through the undo stack model, with a step-through interactive widget." />
 
     <meta name = "keywords" content ="SQL, T-SQL, SQL Server, transactions, BEGIN TRANSACTION, COMMIT, ROLLBACK, SAVEPOINT, undo stack" />
 
-    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/transactions/" />
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/transactions/index.html" />
 
-    <meta property = "og:type"          content="website"/>
+    <meta property = "og:type"          content="article"/>
     <meta property = "og:title"         content="transactions - SQL Field Guide"/>
     <meta property = "og:description"   content="BEGIN, COMMIT, ROLLBACK and SAVEPOINT explained using the undo stack mental model. Includes a step-through interactive widget and T-SQL reference."/>
-    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/transactions" />
+    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/transactions/index.html" />
 
     <link rel = "stylesheet" href = "../../../assets/css/main.css" />
 </head>
@@ -40,6 +40,7 @@
             <div class="category-label">Transactions &amp; Concurrency</div>
             <a class="topic-link" href="../acid-properties/index.html">ACID Properties</a>
             <a class="topic-link active" href="index.html">Transactions</a>
+            <a class="topic-link" href="../locks/index.html">Locks</a>
             <a class="topic-link" href="../isolation-levels/index.html">Isolation Levels</a>
             <a class="topic-link" href="../concurrency-conflicts/index.html">Concurrency Conflicts</a>
         </div>
@@ -92,7 +93,7 @@
             </p>
             <p>
                 Four keywords control the lifecycle of a transaction in SQL Server.
-                Before looking at the syntax, it helps to have a mental mode That
+                Before looking at the syntax, it helps to have a mental mode that
                 makes all four obvious.
             </p>
 
@@ -124,7 +125,7 @@
                 the data after a COMMIT makes the changes public.
             </p>
 
-            <h3>The four keyords</h3>
+            <h3>The four keywords</h3>
             <div class="concept-block">
                 <h4>BEGIN TRANSACTION</h4>
                 <p>Opens the transaction and starts the stack. Every statement 

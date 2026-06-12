@@ -37,6 +37,7 @@ Every topic is organised into three sections:
 ### Intermediate — Transactions & Concurrency
 - [ACID Properties](topics/intermediate/acid-properties/index.html) — the four guarantees every transaction must satisfy, and why Isolation is the one with trade-offs
 - [Transactions](topics/intermediate/transactions/index.html) — BEGIN, COMMIT, ROLLBACK and SAVE TRANSACTION explained through the undo stack mental model, with a dialect comparison for learners coming from MySQL or standard SQL
+- [Locks](topics/intermediate/locks/index.html) — shared vs exclusive locks, lock granularity and escalation, and how a deadlock forms and resolves, walked through with a manufacturing work-order scenario
 - [Isolation Levels](topics/intermediate/isolation-levels/index.html) — the five SQL Server isolation levels, what each protects against, and when to use each one
 - [Concurrency Conflicts](topics/intermediate/concurrency-conflicts/index.html) — deadlocks and Snapshot update conflicts, with a step-through animated timeline and a T-SQL retry pattern
 

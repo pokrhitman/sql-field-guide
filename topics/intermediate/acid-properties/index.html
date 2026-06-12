@@ -6,11 +6,11 @@
     <title>ACID Properties - SQL Field Guide</title>
     <meta name ="description" content="Understand the four ACID guarantees in SQL Server transactions: Atomicity, Consitency, Isolation and Durability - and why each one matters when things go wrong." />
     <meta name = "keywords" content ="SQL, T-SQL, SQL Server, ACID, Atomicity, Consistency, Isolation, Durability, transactions, database." />
-    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/acid-properties/" />
-    <meta property = "og:type"          content="website"/>
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/acid-properties/index.html" />
+    <meta property = "og:type"          content="article"/>
     <meta property = "og:title"         content="ACID Properties - SQL Field Guide"/>
     <meta property = "og:description"   content="The four guarantees every SQL Server transactions must provide - and what breaks without each one."/>
-    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/acid-properties" />
+    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/acid-properties/index.html" />
     <link rel = "stylesheet" href = "../../../assets/css/main.css" />
 </head>
 <body>
@@ -35,6 +35,7 @@
                 <div class="category-label">Transactions &amp; Concurrency</div>
                 <a class="topic-link active" href="index.html">ACID Properties</a>
                 <a class="topic-link" href="../transactions/index.html">Transactions</a>
+                <a class="topic-link" href="../locks/index.html">Locks</a>
                 <a class="topic-link" href="../isolation-levels/index.html">Isolation Levels</a>
                 <a class="topic-link" href="../concurrency-conflicts/index.html">Concurrency Conflicts</a>
             </div>
@@ -86,7 +87,7 @@
                 </p>
                 <p>
                     To make each guarantee concrete, the same scenario runs through 
-                    all four: a bank transfer move $200 from a savings account 
+                    all four: a bank transfer moves $200 from a savings account 
                     to a current account. That is two UPDATE statements inside one 
                     transaction. Simple - but each guarantee is protecting you from
                     a different way it could wrong.
@@ -99,7 +100,7 @@
                     fails together. There is no partial outcome. </p>
                 </div>
                 <p>
-                    The transfer requires two steps: debit savaings, credit current.
+                    The transfer requires two steps: debit savings, credit current.
                     Atomicity means both happen, or neither happens. If the server 
                     crashes between the debit and the credit, SQL Server rolls back 
                     the debit automatically on restart - the account is exactly as it 

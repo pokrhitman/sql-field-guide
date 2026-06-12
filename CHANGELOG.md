@@ -5,6 +5,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-13 — Session 06
+
+### Added
+- **Topic: Locks** (`topics/intermediate/locks/index.html`)
+  Third topic in the Transactions & Concurrency sequence, sitting between
+  Transactions and Isolation Levels. Includes:
+  - Explainer tab: "claim ticket" mental model for shared vs exclusive
+    locks, four-problem framework (lost updates, dirty reads, deadlocks,
+    lock escalation) mapped onto S/X locks, the deadlock detector, and
+    lock granularity, and a manufacturing work-order scenario (two
+    stations updating the same Inventory table in opposite part order)
+  - Interactive tab: six-step deadlock walkthrough reusing the
+    deadlock-diagram and timeline components from Concurrency Conflicts —
+    shows each station acquiring its first X-lock, blocking on the
+    second, the deadlock cycle forming, and the victim (error 1205)
+    being rolled back so the other station can commit
+  - Reference tab: lock mode table (S/X/U/Intent), lock granularity table
+    (row/page/table), notice on automatic lock escalation,
+    sys.dm_tran_locks and sys.dm_exec_requests queries for inspecting
+    locks and blocking, error 1205 reference card linking to Concurrency
+    Conflicts retry pattern, key terms table
+
+### Changed
+- Sidebar updated on all five existing HTML files (`index.html` root,
+  acid-properties, transactions, isolation-levels, concurrency-conflicts)
+  to include Locks as the third link in the Transactions & Concurrency
+  category, between Transactions and Isolation Levels.
+
+---
+
 ## 2026-06-11 — Session 05
 
 ### Added
@@ -160,8 +190,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ## Planned
 
-- **New topic — Locks:** shared vs exclusive locks, lock granularity. Provides
-  the mechanical foundation that makes Isolation Levels fully readable.
 - **New topic — DML Operations:** INSERT, UPDATE, DELETE — first candidate for
   the Beginner tier.
 - **Accessibility refactor:** add aria-label attributes to interactive
