@@ -12,6 +12,10 @@
     <meta property = "og:description"   content="The five SQL Server isolation levels explained: what each one protect against, how locking works and when to use in production."/>
     <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/isolation-levels/index.html" />
     <link rel ="stylesheet" href = "../../../assets/css/main.css" />
+    <script>
+        const SITE_ROOT = "../../../";
+        const CURRENT_PAGE = "isolation-levels";
+    </script>
 </head>
 <body>
 
@@ -23,28 +27,8 @@
 
     <div class="layout">
 
-        <!--- Sidebar --->
-        <nav>
-            <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Beginner</button>
-            <div class="tier-section" id="tier-beginner">
-                <div class="category-label">Coming soon</div>
-            </div>
-
-            <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
-            <div class="tier-section open" id="tier-intermediate">
-                <div class="category-label">Transactions &amp; Concurrency</div>
-                <a class="topic-link" href="../acid-properties/index.html">ACID Properties</a>
-                <a class="topic-link" href="../transactions/index.html">Transactions</a>
-                <a class="topic-link" href="../locks/index.html">Locks</a>
-                <a class="topic-link active" href="index.html">Isolation Levels</a>
-                <a class="topic-link" href="../concurrency-conflicts/index.html">Concurrency Conflicts</a>
-            </div>
-
-            <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
-            <div class="tier-section" id="tier-advanced">
-                <div class="category-label">Coming soon</div>
-            </div>
-        </nav>
+        <!--- Sidebar (poulated by nav.js) --->
+        <nav id="sidebar"></nav>
 
     <!--- Main content --->
     <main>
@@ -167,8 +151,13 @@
     </main>
     </div>
 
+    <!-- Site footer (populated by footer.js) -->
+    <footer id="site-footer"></footer>
+
     <script src="../../../assets/js/nav.js"></script>
+    <script src="../../../assets/js/footer.js"></script>
     <script src="../../../assets/js/tabs.js"></script>
+
     <script>
 
     /* -- Isolation level data -- */

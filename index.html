@@ -8,13 +8,16 @@
     Visual explainers, hand-on widgets and cheat sheets for a better learning experience.
     Focused on Microsoft SQL Server and T-SQL." />
     <meta name = "keywords" content ="SQL, T-SQL, SQL Server, SQL reference guide, SQL learning, interactive, coursework, oline tutorial" />
-    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/" />
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/index.html" />
     <meta property = "og:type"          content="website"/>
     <meta property = "og:title"         content="SQL Field Guide"/>
     <meta property = "og:description"   content="Interactive SQL reference - filling the gaps that coursework leave behind. Focused on SQL Server and T-SQL."/>
     <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/" />
     <link rel = "stylesheet" href="assets/css/main.css" />
-    <script src="assets/js/nav.js"></script>
+    <script>
+        const SITE_ROOT = "";
+        const CURRENT_PAGE = "home";
+    </script>
 
 </head>
 <body>
@@ -64,57 +67,8 @@
 <div class="layout">
 
     <!-- Sidebar -->
-    <nav>
-
-        <!-- FUTURE: Keyword search
-            Uncomment and implement when the site has enought topics 
-            to make search genuinely useful (suggested treshold: 10+ topics).
-
-            Recommended library: Lunr.js (lunrjs.com) - lightweight,
-            no server required, works with a pre-built JSON index.
-
-            Implementation outline:
-            1. Build a search index JSON file (toöics array with name,
-            tier, keywords and href for each topic page).
-            2. Load lunr.min.js before this script block.
-            3. On input, query the index and show matching topic links
-            in a dropdown below the input field.
-            4. Place the index JSON at assets/data/search-index.json
-            and regenerate it whenever a new topic is added.
-
-        <div class="nav-search">
-            <input type="search"
-                id="nav-search-input"
-                placeholder="Search topics..."
-                aria-label="Search topics" />
-        </div>
-        -->
-
-        <!-- Beginner -->
-        <button class="tier-btn" onclick="toggleTier('beginner')">&#9654; Beginner</button>
-        <div class="tier-section" id="tier-beginner">
-            <div class="category-label">Coming soon</div>
-        </div>
-
-        <!-- Intermediate -->
-        <button class="tier-btn" onclick="toggleTier('intermediate')">&#9660; Intermediate</button>
-        <div class="tier-section open" id="tier-intermediate">
-            <div class="category-label">Transactions &amp; Concurrency</div>
-            <a class="topic-link" href="topics/intermediate/acid-properties/index.html">ACID Properties</a>
-            <a class="topic-link" href="topics/intermediate/transactions/index.html">Transactions</a>
-            <a class="topic-link" href="topics/intermediate/locks/index.html">Locks</a>
-            <a class="topic-link" href="topics/intermediate/isolation-levels/index.html">Isolation Levels</a>
-            <a class="topic-link" href="topics/intermediate/concurrency-conflicts/index.html">Concurrency Conflicts</a>
-        </div>
-
-        <!--  Advanced -->
-        <button class="tier-btn" onclick="toggleTier('advanced')">&#9654; Advanced</button>
-        <div class="tier-section" id="tier-advanced">
-            <div class="category-label">Coming soon</div>
-        </div>
-
-    </nav>
-
+     <nav id="sidebar"></nav>
+   
     <!-- Welcome content -->
     <main>
         <h2>Welcome to the SQL Field Guide</h2>
@@ -178,36 +132,12 @@
 
 </div>
 
-<!-- Site footer -->
-<footer>
-    <p>
-        This guide is provided for <strong>educational purposes only</strong>.
-        All content is offered on a best-effort basis. No warranty is made as
-        to the accuracy or completeness of any topic, code example or
-        explanation. Use at your own discretion.
-    </p>
-    <p style="margin-top: 8px;">
-        Licensed under
-        <a href="https://github.com/pokrhitman/sql-field-guide/blob/main/LICENSE"
-           target="_blank">CC BY-NC 4.0</a>.
-        Free to share and adapt for non-commercial purposes with attribution.
-        Commercial use requires a separate written agreement.
-        &nbsp;&middot;&nbsp;
-        Questions or corrections?
-        <a href="https://github.com/pokrhitman/sql-field-guide/issues"
-           target="_blank">Open an issue on GitHub</a>.
-    </p>
-</footer>
+    <!-- Site footer (populated by footer.js) -->
+    <footer id="site-footer"></footer>
 
-<script>
-    // Mark the active topic link based on the current URL
-    const links = document.querySelectorAll('.topic-link');
-    links.forEach(link => {
-        if (link.href === window.location.href) {
-            link.classList.add('active');
-        }
-    });
-    </script>
+    <script src="../../../assets/js/nav.js"></script>
+    <script src="../../../assets/js/footer.js"></script>
+    <script src="../../../assets/js/tabs.js"></script>
 
 </body> 
 </html>

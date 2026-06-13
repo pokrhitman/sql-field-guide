@@ -5,6 +5,56 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-14 — Session 07
+
+### Added
+- `assets/js/footer.js`: shared site footer, injected into a
+  `<footer id="site-footer"></footer>` placeholder on every page.
+  Footer links defined in a `FOOTER_LINKS` array for easy extension
+  as the site grows.
+- `legal.html`: new standalone page covering licence terms (CC BY-NC 4.0),
+  no-warranty notice, and a privacy section (no first-party cookies,
+  analytics, or data collection; note on GitHub Pages hosting). Linked
+  from the shared footer.
+
+### Changed
+- `assets/js/nav.js` refactored from a single `toggleTier()` helper into a
+  full data-driven sidebar:
+  - `SIDEBAR_DATA` array is now the single source of truth for sidebar
+    structure (tiers, categories, topic links).
+  - `buildSidebarHTML()` generates the sidebar markup; `renderSidebar()`
+    injects it into a `<nav id="sidebar"></nav>` placeholder.
+  - Active tier auto-expands and the current page's link is highlighted
+    automatically, based on a per-page `CURRENT_PAGE` declaration.
+  - Sidebar link paths are prefixed with a per-page `SITE_ROOT` value,
+    allowing the same data to resolve correctly at any folder depth.
+- All seven HTML files (`index.html` root, five topic pages, and the new
+  `legal.html`) updated to the new pattern:
+  - Added `SITE_ROOT` / `CURRENT_PAGE` declarations in `<head>`.
+  - Replaced static `<nav>...</nav>` sidebar markup with a single
+    `<nav id="sidebar"></nav>` placeholder.
+  - Replaced static/missing `<footer>` with `<footer id="site-footer"></footer>`,
+    loading `footer.js`.
+  - Removed the old inline active-link-marking script (now handled by
+    `nav.js` via `CURRENT_PAGE`).
+- Search placeholder comment block (Lunr.js implementation outline) moved
+  from root `index.html`'s sidebar into `buildSidebarHTML()` in `nav.js`,
+  since the sidebar markup is now generated in one place.
+- "← Home" link added to `legal.html` header, matching the pattern used on
+  topic pages, so the page is reachable from and returns to the site.
+
+### Fixed
+- Sidebar inconsistencies that had crept in across pages — a missing Locks
+  link on the ACID Properties page, and a typo ("Prorperties") on the
+  Concurrency Conflicts page — are resolved as a side effect of the sidebar
+  now being generated from a single `SIDEBAR_DATA` source rather than
+  duplicated per file.
+- Five topic pages previously had no `<footer>` at all (missing licence
+  notice and issue-tracker link); all now receive the shared footer via
+  `footer.js`.
+
+---
+
 ## 2026-06-13 — Session 06
 
 ### Added
