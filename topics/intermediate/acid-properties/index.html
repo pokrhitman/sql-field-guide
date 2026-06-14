@@ -51,16 +51,16 @@
             </div>
 
             <!-- Tab switcher -->
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('explainer', event)">Explainer</button>
-                <button class="tab-btn"        onclick="switchTab('interactive', event)">Interactive</button>
-                <button class="tab-btn"        onclick="switchTab('reference', event)">Reference</button>
+            <div class="tabs" role="tablist" aria-label="Topic sections">
+                <button class="tab-btn active"  role="tab" id="tab-explainer"    aria-selected="true"   aria-controls="panel-explainer"   onclick="switchTab('explainer', event)">Explainer</button>
+                <button class="tab-btn"         role="tab" id="tab-interactive"  aria-selected="false"  aria-controls="panel-interactive" onclick="switchTab('interactive', event)">Interactive</button>
+                <button class="tab-btn"         role="tab" id="tab-reference"    aria-selected="false"  aria-controls="panel-reference"   onclick="switchTab('reference', event)">Reference</button>
             </div>
 
             <!-- ======================================== -->
             <!-- EXPLAINER TAB                            -->
             <!-- ======================================== -->
-            <div class="tab-panel active" id="panel-explainer">
+            <div class="tab-panel active" id="panel-explainer" role="tabpanel" aria-labelledby="tab-explainer">
 
                 <p>
                     Every transaction in SQL Server must satisfy four guarantees.
@@ -182,22 +182,22 @@
             <!-- ========================================== -->
             <!-- INTERACTIVE TAB                            -->
             <!-- ========================================== -->
-            <div class="tab-panel" id="panel-interactive">
+            <div class="tab-panel" id="panel-interactive" role="tabpanel" aria-labelledby="tab-interactive">
 
                 <p style="margin-bottom:16px; font-size:13px; color:#666; ">
                     Select a property to see what it protects, then toggle the 
                     guarantee off to see what breaks in the bank transfer scenario.
                 </p>
 
-                <div id="acid-buttons"></div>
-                <div id="acid-card"></div>
+                <div id="acid-buttons" role="group" aria-label="Select an ACID property"></div>
+                <div id="acid-card" aria-live="polite"></div>
 
             </div>
 
             <!-- ======================================== -->
             <!-- REFERENCE TAB                            -->
             <!-- ======================================== -->
-            <div class="tab-panel" id="panel-reference">
+            <div class="tab-panel" id="panel-reference" role="tabpanel" aria-labelledby="tab-reference">
 
                 <p style="margin-bottom:20px; font-size:13px; color:#666; ">
                     A compact cheat sheet. Return here after working through the 
@@ -216,9 +216,9 @@
                     <tbody>
                         <tr>
                             <td><strong>Atomicity</strong></td>
-                            <td>All statements commmit or all roll back - no partial outcome</td>
+                            <td>All statements commit or all roll back - no partial outcome</td>
                             <td>A crash mid-transaction leaves data in a half-changed state</td>
-                            <td>Transaction log - incomplete transactions are rolled back on revocery</td>
+                            <td>Transaction log - incomplete transactions are rolled back on recovery</td>
                         </tr>
                         <tr>
                             <td><strong>Consistency</strong></td>
@@ -332,6 +332,7 @@
             btn.className = 'iso-btn';
             btn.textContent = p.letter + ' - ' + p.name;
             btn.id = 'btn-' + p.key;
+            btn.setAttribute('aria-pressed', 'false');
             btn.onclick = () => selectProperty(p.key);
             btnContainer.appendChild(btn);
         });
@@ -342,8 +343,13 @@
         const p = properties.find(x => x.key === key);
         currentToggle[key] = currentToggle[key] || 'safe';
 
-        document.querySelectorAll('.iso-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + key).classList.add('active');
+        document.querySelectorAll('.iso-btn').forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+        });
+        const activeBtn = document.getElementById('btn-' + key);
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-pressed', 'true');
 
         renderCard(p, currentToggle[key]);
     }
@@ -359,7 +365,7 @@
         const accounts = isBroken ? p.brokenAccounts : p.safeAccounts;
         const title = isBroken ? p.brokenTitle : p.safeTitle;
         const note  = isBroken ? p.brokenNote  : p.safeNote;
-        const toggleLabel = isBroken ? '&#10003; Guarantee ON' : '&#10007; Turn guarantee OFF';
+        const toggleLabel = isBroken ? '&#10003; Guarantee On' : '&#10007; Turn guarantee Of';
         const toggleCls = isBroken ? 'pill-risk' : 'pill-safe';
         const savingsColor = (isBroken && accounts.savings < 0) ? '#c62828' : '#444';
         const currentColor = (isBroken && p.key === 'atomicity') ? '#c62828' : '#444';
@@ -373,6 +379,7 @@
                 '<h4>' + p.name + ' <span style="font-size:12px;color:#888;font-weight:400;">- ' + p.tagline + '</span></h4>' +
                 '<div style="margin:12px 0;">' +
                     '<button class="pill ' + toggleCls + '" ' +
+                        'aria-pressed="' + isBroken + '" ' + 
                         'style="cursor:pointer;border:none;font-size:13px;padding:5px 14px;" ' +
                         'onclick="toggleGuarantee(\'' + p.key + '\')">' +
                         toggleLabel + 

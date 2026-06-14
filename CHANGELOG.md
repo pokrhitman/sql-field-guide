@@ -5,6 +5,70 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-14 — Session 08
+
+### Added
+- `docs/aria-patterns.md`: new reference document cataloguing the five
+  ARIA patterns used across the site — tab switcher, sidebar tier
+  accordion, current-page sidebar link, selector/toggle button groups,
+  and live regions for dynamically-updated content — with guidance for
+  applying each pattern to future topic pages.
+- `SIDEBAR_DATA` now supports `comingSoon` placeholder entries: a topic
+  with `comingSoon: true` (and no `id`/`path`) renders as a non-clickable
+  `<span class="topic-link disabled" aria-disabled="true">`, styled via
+  new `.topic-link.disabled` rule in `main.css`. Used to populate a broad
+  outline of upcoming content:
+  - Beginner: "Queries, Filtering & Joins", "Transformations & Views"
+  - Advanced: "Performance Diagnostics & Error Analytics", "Indexing &
+    Query Performance", "Security, Maintenance & Integration"
+
+### Changed
+- **ARIA tabs pattern** applied to all 7 pages: `.tabs` containers get
+  `role="tablist"` and `aria-label`; each `.tab-btn` gets `role="tab"`,
+  a unique `id`, `aria-controls`, and `aria-selected`; each `.tab-panel`
+  gets `role="tabpanel"` and `aria-labelledby`. `assets/js/tabs.js`'s
+  `switchTab()` updated to toggle `aria-selected` alongside the existing
+  `.active` class.
+- **Sidebar accordion pattern** in `assets/js/nav.js`: tier buttons get
+  `aria-expanded` and `aria-controls`; `toggleTier()` keeps
+  `aria-expanded` in sync with the section's open/closed state.
+- **Current-page link**: the active topic's sidebar link gets
+  `aria-current="page"`, set in `buildSidebarHTML()`.
+- **Interactive tab widgets** across all five topic pages:
+  - ACID Properties & Isolation Levels (selector + detail card): button
+    containers get `role="group"` and a descriptive `aria-label`;
+    `aria-pressed` tracked on each selector button via JS. Detail card
+    gets `aria-live="polite"`. ACID's guarantee toggle pill also gets
+    `aria-pressed` reflecting its on/off state; toggle label text changed
+    from `ON`/`OFF` to `On`/`Off` (NVDA spells out short all-caps strings
+    letter-by-letter).
+  - Transactions, Locks, Concurrency Conflicts (step-through timelines):
+    `#step-counter` and `#step-narrative` get `aria-live="polite"` — the
+    only elements whose text content changes per step. Concurrency
+    Conflicts' step controls also get `role="group"` and
+    `aria-label="Step navigation"`.
+
+### Fixed
+- ACID Properties reference table: "revocery" corrected to "recovery",
+  "commmit" corrected to "commit".
+- Reference tab silently broken on multiple pages: the Reference tab
+  button's `onclick` incorrectly called `switchTab('interactive', event)`
+  instead of `switchTab('reference', event)`.
+- Invalid `role="tab-panel"` corrected to `role="tabpanel"` on tab panel
+  elements.
+- `assets/js/nav.js`: missing closing quote on a tier button's `id`
+  attribute, which silently broke the sidebar accordion's `onclick`
+  handler (the accordion rendered but did nothing on click).
+- `assets/js/nav.js`: syntax error in `SIDEBAR_DATA`
+  (`comingSoon = true` instead of `comingSoon: true`) which broke parsing
+  of the entire file, causing the sidebar to disappear.
+- Nested `<span class="soon-tag">` inside "coming soon" sidebar entries
+  removed — screen readers exposed it as a separate object, requiring a
+  hover to read "(Coming soon)". Now a single text node, read as one unit.
+  Now-unused `.soon-tag` rule removed from `main.css`.
+
+---
+
 ## 2026-06-14 — Session 07
 
 ### Added
@@ -240,12 +304,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ## Planned
 
-- **New topic — DML Operations:** INSERT, UPDATE, DELETE — first candidate for
-  the Beginner tier.
-- **Accessibility refactor:** add aria-label attributes to interactive
-  controls and navigation elements across all pages. Deferred to a
-  dedicated session.
-- **Contribution standard document:** folder structure, JavaScript data array
-  format, tab content requirements, tone guide. Prerequisite before recruiting
-  collaborators.
+- **Session 09 — Performance Basics:** closes out the Transactions &
+  Concurrency chapter as a complete six-topic sequence (ACID Properties →
+  Transactions → Locks → Isolation Levels → Concurrency Conflicts →
+  Performance Basics).
+
+- **Session 10 — Beginner tier:** sequence to be drafted working sequentially
+  from true beginnings. The "coming soon" placeholders added in Session 08 act as a
+  rough roadmap; liberty to reorder, split, or add topics as makes sense.
+
+- **Table accessibility pass:** add `scope="col"`/`scope="row"` to `<th>`
+  elements across all `.data-table` instances — screen readers currently
+  read table cells without column-header context.
+
+- **ARIA refactor part 2 — live-region reading order:** `aria-live`
+  regions in Interactive widgets are announced out of document order
+  (e.g. a toggle's description before the heading above it). Addressing
+  this is a design decision (restructuring vs. shifting focus with
+  `tabindex="-1"`), better suited to its own session.
 

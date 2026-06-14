@@ -18,7 +18,10 @@ const SIDEBAR_DATA = [
     {
         tier: "beginner",
         label: "Beginner",
-        topics: [] // empty -> "Coming soon" placeholder is shown
+        topics: [
+            {label: "Queries, Filtering & Joins", comingSoon: true}, 
+            {label: "Transformation & Views", comingSoon: true}, 
+        ]
     },
     {
         tier: "intermediate",
@@ -35,7 +38,12 @@ const SIDEBAR_DATA = [
     {
         tier: "advanced",
         label: "Advanced",
-        topics: []
+        topics: [
+            {label: "Performance Diagnostics & Error Analytics", comingSoon: true},
+            {label: "Indexing & Query Performance", comingSoon: true},
+            {label: "Security, Maintenance & Integration", comingSoon: true},
+
+        ]
     }
 ];
 
@@ -73,7 +81,7 @@ function buildSidebarHTML() {
         const arrow = isActiveTier ? "&#9660;" : "&#9654;";
         const openClass = isActiveTier ? " open" : "";
 
-        html += `<button class="tier-btn" onclick="toggleTier('${tier.tier}')">${arrow} ${tier.label}</button>\n`;
+        html += `<button class="tier-btn" id="tier-btn-${tier.tier}" onclick="toggleTier('${tier.tier}')" aria-expanded="${isActiveTier}" aria-controls="tier-${tier.tier}">${arrow} ${tier.label}</button>\n`;
         html += `<div class="tier-section${openClass}" id="tier-${tier.tier}">\n`;
 
         if (tier.topics.length === 0) {
@@ -83,8 +91,13 @@ function buildSidebarHTML() {
                 html += `   <div class="category-label">${tier.category}</div>\n`;
             }
             tier.topics.forEach(topic => {
+                if (topic.comingSoon) {
+                    html += `   <span class="topic-link disabled" aria-disabled="true">${topic.label} (Coming soon)</span>\n`;
+                    return;
+                }
                 const activeClass = topic.id === CURRENT_PAGE ? " active" : "";
-                html += `   <a class="topic-link${activeClass}" href="${SITE_ROOT}${topic.path}">${topic.label}</a>\n`;
+                const ariaCurrent = topic.id === CURRENT_PAGE ? ' aria-current="page"' : "";
+                html += `   <a class="topic-link${activeClass}" href="${SITE_ROOT}${topic.path}"${ariaCurrent}>${topic.label}</a>\n`;
             });
         }
 
@@ -108,7 +121,10 @@ function renderSidebar() {
 // --------------------------------------------------------
 function toggleTier(id) {
     const section = document.getElementById('tier-' + id);
+    const button = document.getElementById('tier-btn-' +id);
     section.classList.toggle('open');
+    const isOpen = section.classList.contains('open');
+    button.setAttribute('aria-expanded', isOpen);
 }
 
 // Run once the DOM is ready

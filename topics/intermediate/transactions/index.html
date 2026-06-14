@@ -61,7 +61,7 @@
         <!-- ========================================== -->
         <!-- EXPLAINER TAB                              -->
         <!-- ========================================== -->
-        <div class="tab-panel active" id="panel-explainer">
+        <div class="tab-panel active" id="panel-explainer" role="tabpanel" aria-labelledby="tab-explainer">
 
             <p>
                 A transaction is a unit of work: one or more SQL statements that 
@@ -165,7 +165,7 @@
             <!-- ========================================== -->
             <!-- INTERACTIVE TAB                            -->
             <!-- ========================================== -->
-            <div class="tab-panel" id="panel-interactive">
+            <div class="tab-panel" id="panel-interactive"  role="tabpanel" aria-labelledby="tab-interactive">
 
                 <p style="margin-bottom:16px; font-size:13px; color:#666; ">
                     Step through the order fulfilment transaction. Whatch the undo stack
@@ -173,7 +173,7 @@
                     need to reverse if a ROLLBACK were called at that moment.
                 </p>
 
-                <div class="step-counter" id="step-counter">Step 1 of 8</div>
+                <div class="step-counter" id="step-counter" aria-live="polite">Step 1 of 8</div>
 
                 <div style="display: flex; gap: 16px; margin-bottom: 16px;">
 
@@ -199,9 +199,9 @@
 
                 </div>
 
-                <div class="step-narrative" id="step-narrative"></div>
+                <div class="step-narrative" id="step-narrative" aria-live="polite"></div>
 
-                <div class="step-controls" style="margin-top: 16 px;">
+                <div class="step-controls" style="margin-top: 16 px;" role="group" aria-label="Step navigation.">
                     <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&#8592; Previous</button> 
                     <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &#8594;</button> 
                     <button class="step-btn secondary" onclick="resetSteps()">&#8635; Restart</button> 
@@ -212,7 +212,7 @@
         <!-- ======================================== -->
         <!-- REFERENCE TAB                            -->
         <!-- ======================================== -->
-        <div class="tab-panel" id="panel-reference">
+        <div class="tab-panel" id="panel-reference" role="tabpanel" aria-labelledby="tab-reference">
 
             <p style="margin-bottom: 20px; font-size: 13px; color: #666; ">
                 A compact cheat sheet. Return here after working through the 

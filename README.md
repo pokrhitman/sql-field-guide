@@ -79,30 +79,22 @@ no installation, no terminal commands beyond the initial clone.
 
 ---
 
-## How to contribute
+## Feedback & ideas
 
-Contributions are welcome. The most useful contributions are new topic pages
-that follow the Explainer / Interactive / Reference structure.
+The underlying structure of the project (shared components, page templates, styling) is still evolving, so accepting code pull requests at this stage would create more breakage than benefit.
 
-**To suggest a topic:**
-Open an issue with the label `topic request` and describe the concept and
-which tier it belongs in.
+That said, outside perspective genuinely improves the content. If you:
 
-**To contribute a topic page:**
-1. Fork the repository
-2. Create a folder under the appropriate tier:
-   `topics/beginner/your-topic/` or `topics/intermediate/your-topic/`
-3. Copy the structure of an existing topic page as your starting point —
-   including the `SITE_ROOT` / `CURRENT_PAGE` declarations in `<head>` and
-   the `#sidebar` / `#site-footer` placeholders. Update `CURRENT_PAGE` to
-   match your topic's `id`, and add an entry to `SIDEBAR_DATA` in
-   `assets/js/nav.js`.
-4. Open a pull request with a short description of what the page covers
-   and what gap it fills
+- Spot an error, unclear explanation, or outdated information
+- Have an idea for a topic that would fill a gap in the guide
+- Notice something that doesn't behave as expected
 
-Please read the [licence](#licence) section before contributing. By
-submitting a pull request you agree that your contribution is made under
-the same CC BY-NC 4.0 terms as the rest of the project.
+please [open an issue](https://github.com/pokrhitman/sql-field-guide/issues).
+Topic suggestions are especially welcome — use the `topic request` label and
+describe the concept, which tier it fits, and what gap it fills.
+
+Once the project's structure has settled, a contribution guide may be added. 
+For now, ideas and feedback are the most useful way to get involved.
 
 ---
 

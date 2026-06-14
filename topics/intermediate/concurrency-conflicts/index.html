@@ -52,16 +52,16 @@
             </div>
 
             <!-- Tab switcher -->
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('explainer', event)">Explainer</button>
-                <button class="tab-btn"        onclick="switchTab('interactive', event)">Interactive</button>
-                <button class="tab-btn"        onclick="switchTab('reference', event)">Reference</button>
+            <div class="tabs" role="tablist" aria-label="Topic sections">
+                <button class="tab-btn active"  role="tab" id="tab-explainer"    aria-selected="true"   aria-controls="panel-explainer"   onclick="switchTab('explainer', event)">Explainer</button>
+                <button class="tab-btn"         role="tab" id="tab-interactive"  aria-selected="false"  aria-controls="panel-interactive" onclick="switchTab('interactive', event)">Interactive</button>
+                <button class="tab-btn"         role="tab" id="tab-reference"    aria-selected="false"  aria-controls="panel-reference"   onclick="switchTab('reference', event)">Reference</button>
             </div>
 
             <!-- ======================================== -->
             <!-- EXPLAINER TAB                            -->
             <!-- ======================================== -->
-            <div class="tab-panel active" id="panel-explainer">
+            <div class="tab-panel active" id="panel-explainer" role="tabpanel" aria-labelledby="tab-explainer">
 
                 <p>
                     Choosing the right isolation level handles most concurrency
@@ -181,14 +181,14 @@
             <!-- ========================================== -->
             <!-- INTERACTIVE TAB                            -->
             <!-- ========================================== -->
-            <div class="tab-panel" id="panel-interactive">
+            <div class="tab-panel" id="panel-interactive" role="tabpanel" aria-labelledby="tab-interactive">
 
                 <p style="margin-bottom:16px; font-size:13px; color:#666; ">
                     Step through a deadlock scenario frame by frame. Watch what each 
                     transaction is doing and when SQL Server intervenes.
                 </p>
 
-                <div class="step-counter" id="step-counter">Step 1 of 7</div>
+                <div class="step-counter" id="step-counter" aria-live="polite">Step 1 of 7</div>
 
                 <div class="timeline">
                     <div class="tl-col">
@@ -201,9 +201,9 @@
                     </div>
                 </div>
 
-                <div class="step-narrative" id="step-narrative"></div>
+                <div class="step-narrative" id="step-narrative" aria-live="polite"></div>
 
-                <div class="step-controls" style="margin-top:16px;">
+                <div class="step-controls" style="margin-top:16px;" role="group" aria-label="Step navigation">
                     <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&#8592; Previous</button>
                     <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &#8594;</button>
                     <button class="step-btn secondary" onclick="resetSteps()">&#8635; Restart</button>
@@ -214,7 +214,7 @@
             <!-- ======================================== -->
             <!-- REFERENCE TAB                            -->
             <!-- ======================================== -->
-            <div class="tab-panel" id="panel-reference">
+            <div class="tab-panel" id="panel-reference" role="tabpanel" aria-labelledby="tab-reference">
 
                 <p style="margin-bottom:20px; font-size:13px; color:#666; ">
                     A compact cheat sheet. Return here after working through the 

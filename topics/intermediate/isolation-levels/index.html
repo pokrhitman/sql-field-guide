@@ -51,16 +51,16 @@
         </div>
 
         <!-- Tab switcher -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('explainer', event)">Explainer</button>
-            <button class="tab-btn"        onclick="switchTab('interactive', event)">Interactive</button>
-            <button class="tab-btn"        onclick="switchTab('reference', event)">Reference</button>
+        <div class="tabs" role="tablist" aria-label="Topic sections">
+            <button class="tab-btn active"  role="tab" id="tab-explainer"    aria-selected="true"   aria-controls="panel-explainer"   onclick="switchTab('explainer', event)">Explainer</button>
+            <button class="tab-btn"         role="tab" id="tab-interactive"  aria-selected="false"  aria-controls="panel-interactive" onclick="switchTab('interactive', event)">Interactive</button>
+            <button class="tab-btn"         role="tab" id="tab-reference"    aria-selected="false"  aria-controls="panel-reference"   onclick="switchTab('reference', event)">Reference</button>
         </div>
 
         <!-- ======================================== -->
         <!-- EXPLAINER TAB                            -->
         <!-- ======================================== -->
-        <div class="tab-panel active" id="panel-explainer">
+        <div class="tab-panel active" id="panel-explainer" role="tabpanel" aria-labelledby="tab-explainer">
 
             <p>
                 When multiple users query or change data at the same time, things can 
@@ -122,22 +122,22 @@
         <!-- ========================================== -->
         <!-- INTERACTIVE TAB                            -->
         <!-- ========================================== -->
-        <div class="tab-panel" id="panel-interactive">
+        <div class="tab-panel" id="panel-interactive" role="tabpanel" aria-labelledby="tab-interactive">
 
             <p style="margin-bottom:16px; font-size:13px; color:#666; ">
                 Select an isolation level to see what it protects against and a 
                 real-world scenario where it is used.
             </p>
 
-            <div id="iso-buttons"></div>
-            <div class="detail-card" id="detail-card"></div>
+            <div id="iso-buttons" role="group" aria-label="Select an isolation level"></div>
+            <div class="detail-card" id="detail-card" aria-live="polite"></div>
 
         </div>
 
         <!-- ======================================== -->
         <!-- REFERENCE TAB                            -->
         <!-- ======================================== -->
-        <div class="tab-panel" id="panel-reference">
+        <div class="tab-panel" id="panel-reference" role="tabpanel" aria-labelledby="tab-reference">
 
             <p style="margin-bottom:20px; font-size:13px; color:#666; ">
                 A compact cheat sheet. Return here after working through the 
@@ -242,6 +242,7 @@
             const btn = document.createElement('button');
             btn.className = 'iso-btn';
             btn.textContent = lv.name;
+            btn.setAttribute('aria-pressed', 'false');
             btn.onclick = () => selectLevel (lv.key);
             btn.id = 'btn-' + lv.key;
             btnContainer.appendChild(btn);
@@ -251,8 +252,13 @@
 
     function selectLevel(key) {
         const lv = levels.find( l => l.key === key);
-        document.querySelectorAll('.iso-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + key).classList.add('active');
+        document.querySelectorAll('.iso-btn').forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+        });
+        const activeBtn = document.getElementById('btn-' + key);
+        activeBtn.classList.add('active');
+        activeBtn.setAttribute('aria-pressed', 'true');
 
         const pills = lv.risks.map(r => {
             const cls = r.safe ? 'pill-safe' : 'pill-risk';

@@ -118,6 +118,13 @@ nav {
     background: #e8eaf6;
     font-weight: 500;
 }
+.topic-link.disabled {
+    color: #aaa;
+    cursor: default;
+}
+.topic-link.disabled:hover {
+    background: none;
+}
 
 /* Collapsible tier sections */
 .tier-section      { display: none; }
