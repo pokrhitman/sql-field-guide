@@ -5,6 +5,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-20 — Session 09
+
+### Added
+- **Topic: Performance Basics** (`topics/intermediate/performance-basics/index.html`)
+  Final topic in the Transactions & Concurrency sequence — completes the
+  six-topic chapter (ACID Properties → Transactions → Locks → Isolation
+  Levels → Concurrency Conflicts → Performance Basics).
+  - Explainer tab: warehouse mental model covering index seek vs. scan,
+    transaction scope, and isolation level as the three levers controlling
+    query cost; four-problem framework (slow reads, read/write contention,
+    long-blocking transactions, lock escalation) mapped to causes and fixes
+  - Interactive tab: query cost simulator — three controls (isolation
+    level, index presence, transaction scope) covering 12 combinations,
+    each with estimated I/O cost, lock hold duration, colour-coded
+    blocking risk badge, plain-English explanation, and a matching
+    multi-line T-SQL snippet. Set in an e-commerce flash-sale scenario
+    (inventory check + order insert)
+  - Reference tab: `SET STATISTICS TIME/IO ON` usage and output field
+    guide, `sys.dm_exec_requests` blocking query, isolation level cost
+    summary table, transaction scope do/don't table, key terms glossary,
+    and a dialect note on `READ_COMMITTED_SNAPSHOT` vs. MySQL/PostgreSQL
+    MVCC behaviour
+- `SIDEBAR_DATA` in `assets/js/nav.js`: new entry for Performance Basics
+  under the Intermediate tier, replacing the placeholder slot reserved
+  since Session 08.
+
+---
+
 ## 2026-06-14 — Session 08
 
 ### Added
