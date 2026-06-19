@@ -33,6 +33,7 @@ const SIDEBAR_DATA = [
             {id: "locks",                   label: "Locks",                 path: "topics/intermediate/locks/index.html" },
             {id: "isolation-levels",        label: "Isolation Levels",      path: "topics/intermediate/isolation-levels/index.html" },
             {id: "concurrency-conflicts",   label: "Concurrency Conflicts", path: "topics/intermediate/concurrency-conflicts/index.html" },
+            {id: "performance-basics",      label: "Performance Basics",    path: "topics/intermediate/performance-basics/index.html" }
         ]
     },
     {

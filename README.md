@@ -40,9 +40,11 @@ Every topic is organised into three sections:
 - [Locks](topics/intermediate/locks/index.html) — shared vs exclusive locks, lock granularity and escalation, and how a deadlock forms and resolves, walked through with a manufacturing work-order scenario
 - [Isolation Levels](topics/intermediate/isolation-levels/index.html) — the five SQL Server isolation levels, what each protects against, and when to use each one
 - [Concurrency Conflicts](topics/intermediate/concurrency-conflicts/index.html) — deadlocks and Snapshot update conflicts, with a step-through animated timeline and a T-SQL retry pattern
+- [Performance Basics](topics/intermediate/performance-basics/index.html) — what makes a query slow and why correct concurrency control has a performance cost, with an interactive query cost simulator covering isolation level, indexing, and transaction scope in an e-commerce flash-sale scenario
 
-More topics are in development. See the [open issues](https://github.com/pokrhitman/sql-field-guide/issues) for what is planned
-and where contributions are most needed.
+This completes the Transactions & Concurrency chapter — six topics covering everything from the four ACID guarantees through to query performance under concurrent load.
+
+More topics are in development. See the [open issues](https://github.com/pokrhitman/sql-field-guide/issues) for what is planned and where contributions are most needed.
 
 ---
 

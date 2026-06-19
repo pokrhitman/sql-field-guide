@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Performance Basics - SQL Field Guide</title>
+    <meta name = "description" content="Understand what makes SQL Server queries slow and how transactions affect performance. Interactive query cost simulator with real e-commerce scenarios." />
+    <meta name = "keywords" content ="SQL, T-SQL, SQL Server, query performance, index seek, index scan, lock contention, transaction scope, SET STATISTICS IO, execution plan" />
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/intermediate/performance-basics/index.html" />
+    <meta property = "og:type"          content="article"/>
+    <meta property = "og:title"         content="Performance Basics - SQL Field Guide"/>
+    <meta property = "og:description"   content="What makes SQL queries slow and what you can do about it. Interactive cost simulator covering indexes, isolation levels and transcation scope. "/>
+    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/intermediate/performance-basics/index.html" />
+    <link rel = "stylesheet" href="../../../assets/css/main.css" />
+    <script>
+        const SITE_ROOT = "";
+        const CURRENT_PAGE = "performance-basics";
+    </script>
+
+    <style>
+        /* -- Simulator controls panel -- */
+        .sim-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .sim-control-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+        .sim-control-group select {
+            width: 100%;
+            padding: 7px 10px;
+            font-size: 13px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            color: #222;
+            cursor: pointer;
+        }
+        .sim-control-group select:focus {
+            outline: 2px solid #5c6bc0;
+            outline-offset: 1px;
+        }
+
+        /* -- Simulator output panel -- */
+        .sim-output {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            overflow: hidden;
+        }
+        .sim-output-header {
+            background: #1a1a2e;
+            color: #e8eaf6;
+            padding: 10px 18px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .sim-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0;
+            border-bottom: 1px solid #eee;
+        }
+        .sim-metric {
+            padding: 16px 18px;
+            border-right: 1px solid #eee;
+            text-align: center;
+        }
+        .sim-metric:last-child { border-right: none; }
+        .sim-metric-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .sim-metric-value {
+            font-size: 15px;
+            font-weight: 500;
+            color: #222;
+            margin-bottom: 6px;
+        }
+
+        /* Blocking risk badge */
+        .risk-badge {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+        .risk-low       { background: #e8f5e9; color: #2e7d32; }
+        .risk-medium    { background: #fff8e1; color: #e65100; }
+        .risk-high      { background: #ffebee; color: #c62828; }
+
+        /* Explanation and code sections */
+        .sim-explanation {
+            padding: 16px 18px;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #444;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+        }
+        .sim-explanation strong { color: #1a1a2e; }
+
+        .sim-code-header {
+            padding: 10px 18px 0;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+        }
+
+        /* -- Performance tip callout -- */
+        .perf-tip {
+            background: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: #1b5e20;
+            margin: 16px 0;
+            line-height: 1.6;
+            border-radius: 0 4px 4px 0;
+        }
+        .perf-tip strong { color: #1b5e20; }
+
+        /* -- Four-problem table in explainer -- */
+        .problem-table-wrap { overflow-x: auto; margin: 16px 0; }
+
+        /* -- Key term inline highlight -- */
+        .kterm {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+     <header>
+        <h1>SQL Field Guide</h1>
+        <a href="../../../index.html" style="margin-left: 24px;">&#8592; Home</a>
+     </header>
+
+     <div class="layout">
+
+        <!-- Sidebar (populated by nav.js) -->
+        <nav id="sidebar"></nav>
+
+        <!-- Main content -->
+         <main>
+
+            <!-- Breadcrumb -->
+             <div class="breadcrumb">
+                <a href="../../../index.html">Home</a> &rsaquo;
+                Intermediate &rsaquo;
+                Transactions &amp; Concurrency &rsaquo;
+                Performance Basics 
+             </div>
+
+             <h2>Performance Basics</h2>
+
+             <div class="prereq">
+                <strong>Before this topic: </strong> you should understand 
+                what transactions are (BEGIN / COMMIT blocks), how locks 
+                work (shared vs. exclusive, granularity) and what isolation 
+                levels control. This topic shows how all three interact 
+                to determine how fast &mdash; or how slow &mdash; your 
+                queries rund under concurrent load.
+             </div>
+
+             <!-- Tab switcher -->
+            <div class="tabs" role="tablist" aria-label="Topic sections">
+                <button class="tab-btn active"  role="tab" id="tab-explainer"   aria-selected="true"    aria-controls="panel-explainer"   onclick="switchTab('explainer', event)">Explainer</button>
+                <button class="tab-btn"         role="tab" id="tab-interactive" aria-selected="false"   aria-controls="panel-interactive" onclick="switchTab('interactive', event)">Interactive</button>
+                <button class="tab-btn"         role="tab" id="tab-reference"   aria-selected="false"   aria-controls="panel-reference"   onclick="switchTab('reference', event)">Reference</button>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- EXPLAINER TAB                              -->
+            <!-- ========================================== -->
+            <div class="tab-panel active" id="panel-explainer" role="tabpanel" aria-labelledby="tab-explainer">
+
+                <p>
+                    The previous topics in this chapter covered correctness:
+                    how transitions, locks and isolation levels protect your
+                    data from concurrent access problems. This topic is about
+                    <em>cost</em> &mdash; understanding why correct behavior
+                    sometimes comes with a performance price and what knobs
+                    you can actually turn.
+                </p>
+
+                <h3>Mental model: the database is a busy warehouse</h3>
+
+                <p>
+                    Imagine a large warehouse during a flash sale. Thousands
+                    of workers (queries) arrive at the same time, each needing
+                    to find items on shelves (rows), note what they see and 
+                    in some cases update the stock count. Three things 
+                    determine how quickly each worker gets in and out:
+                </p>
+
+                <div class="concept-block">
+                    <h4>1. How it navigates &mdash; index vs. scan</h4>
+                    <p>
+                        A worker with a precise shelf address goes straight 
+                        there: one aisle, one shelf, done. That is an 
+                        <span class="kterm">index seek</span> &mdash; SQL 
+                        Server jumps directly to the rows that match your 
+                        WHERE clause. A worker without an address walks every 
+                        single aisle checking every shelf: that is an 
+                        <span class="kterm">index scan</span> (or table scan).
+                        Scans read far more pages, take longer and hold any 
+                        locks they acquire across every page they touch.
+                    </p>
+                </div>
+
+                <div class="concept-block">
+                    <h4>2. How long it holds its claim &mdash; transaction scope</h4>
+                    <p>
+                        Locks are held for the duration of the transaction.
+                        A worker who claims a shelf as soon as they arrive 
+                        and doesn't release it until they've finished writing
+                        their paperwork, eaten lunch and made a phone call
+                        is blocking every other worker who needs that shelf.
+                        <span class="kterm">Transaction scope</span> &mdash;
+                        what you put inside your BEGIN / COMMIT block &mdash;
+                        directly controls how long your locks are held.
+                        Wide scope (validation logic, calculations, logging
+                        all inside the transaction) means long lock hold times.
+                        Narrow scope (only the essential write inside the 
+                        transaction) means short lock hold times.
+                    </p>
+                </div>
+
+                <div class="concept-block">
+                    <h4>3. What level of caution it operates under &mdash; isolation level</h4>
+                    <p>
+                        A worker operating under strict rules takes a formal 
+                        claim on every shelf they glance at and holds it until
+                        their entire job is done (Serializable). A worker under 
+                        relaxed rules glances at a shelf, notes what they see
+                        and releases the claim immediately (Read Committed).
+                        Higher isolation levels acquire more locks, hold them
+                        longer and therefore block more concurrent work.
+                        The trade-off is data consistency vs. throughput.
+                    </p>
+                </div>
+
+                <h3>The four performance problems &mdash; and the levers that fix them</h3>
+
+                <div class="problem-table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Problem</th>
+                                <th scope="col">Symptom</th>
+                                <th scope="col">Cause</th>
+                                <th scope="col">Lever</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Slow reads</strong></td>
+                                <td>Product pages time out under peak load</td>
+                                <td>Table scan instead on the lookup column</td>
+                                <td>Add a covering index on the lookup column</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Read/write contention</strong></td>
+                                <td>Inventory check blocks order insert</td>
+                                <td>Read holding shared locks unter Repeatable Read or Serializable</td>
+                                <td>Lower isolation level; consider READ_COMMITTED_SNAPSHOT</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Long-blocking transaction</strong></td>
+                                <td>Checkout sluggish site-wide during flash sale</td>
+                                <td>Transaction scope wraps validation, calculations and the write together</td>
+                                <td>Move everything except the essential write outside the transaction</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lock escalation</strong></td>
+                                <td>Sudden site-wide slowdown at peak: a table lock appears</td>
+                                <td>Row-level locks escalate to a table lock when a treshold is crossed (~ 5,000 locks per object)</td>
+                                <td>Batch large writes; reduce rows touched per transaction</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Measuring before you fix</h3>
+
+                <p>
+                    Never guess at a performance problem. SQL Server provides
+                    diagnostic tools that show you exactly what is happening.
+                    Use these first, then decide which lever to pull.
+                </p>
+
+                <div class="concept-block">
+                    <h4>SET STATISTICS TIME ON / SET STATISTICS IO ON</h4>
+                    <p>
+                        Run these before your query in SSMS. The output in 
+                        the Messages tab tells you elapsed time (wall clock),
+                        CPU time and &mdash; most usefully &mdash;
+                        <span class="kterm">logical reads</span>: how many 
+                        8KB data pages SQL Server read from the buffer cache 
+                        to satisfy the query. A table scan on a large table 
+                        can produc thousands of logical reads; an index seek 
+                        on the same query might produce fewer than ten.
+                        Logical reads are the most reliable indicator of query 
+                        efficiency because they are not affected by server load 
+                        or caching effects the way elapsed time is.
+                    </p>
+                </div>
+
+                <div class="concept-block">
+                    <h4>Execution plans (Ctrl+M in SSMS)</h4>
+                    <p>
+                        The graphical execution plan shows you exactly which 
+                        operations SQL Server chose to execute your query.
+                        Look for <span class="kterm">Index Seek</span>
+                        (efficient &mdash; going straight to the right rows)
+                        vs. <span class="kterm">Table Scan</span> or 
+                        <span class="kterm"> </span> Scan</span> (reading all 
+                        rows). The thickness of the arrows between operations 
+                        represents the estimated number of rows flowing 
+                        through &mdash; a very thick arrow into an early 
+                        Filter operation is often a sign that filtering
+                        happening too late.
+                    </p>
+                </div>
+
+                <div class="concept-block">
+                    <h4>sys.dm_exec_requests</h4>
+                    <p>
+                        When the database feels slow right now, this dynamic 
+                        management view shows all currently running requests. 
+                        The <code>blocking_session_id</code> column is the 
+                        one to check first: a non-zero value means that 
+                        session is waiting for a lock held by another session. 
+                        The <code>wait_type</code> column tells you what kind 
+                        of resource it is waiting for. See the Reference tab 
+                        for the full query.
+                    </p>
+                </div>
+
+                <div class="perf-tip">
+                    <strong>The practical order of attack:</strong> add the 
+                    right index first (it often eliminates contention by 
+                    reducing scan scope and lock footprint), then narrow 
+                    transaction scope (reduces hold duration), the revisit 
+                    isolation level only if contention persists. Changing
+                    isolation level without fixing indexes first is treating 
+                    the symptom, not the cause.
+                </div>
+
+            </div>
+
+            <!-- ========================================== -->
+            <!-- INTERACTIVE TAB                            -->
+            <!-- ========================================== -->
+            <div class="tab-panel" id="panel-interactive"  role="tabpanel" aria-labelledby="tab-interactive">
+
+                <p>
+                    The simulator below models an e-commerce platform during
+                    a flash sale. Thousands of customers are simultaneously 
+                    checking product availability (reads) while orders are 
+                    being placed and stock counts decremented (writes). 
+                    Adjust the three variables and see how they intersect to 
+                    determine query cost and blocking risk. 
+                </p>
+
+                <!-- Controls -->
+                 <div class="sim-controls" role="group" aria-label="Simulator controls">
+                    <div class="sim-control-group">
+                        <label for="ctrl-isolation">Isolation</label>
+                        <select id="ctrl-isolation" onchange="updateSimulator()">
+                            <option value="rc">Read Committed</option>
+                            <option value="rr">Repeatable Read</option>
+                            <option value="ser">Serializable</option>
+                        </select>
+                    </div>
+                    <div class="sim-control-group">
+                        <label for="ctrl-index">Index on ProductId</label>
+                        <select id="ctrl-index" onchange="updateSimulator()">
+                            <option value="yes">Present</option>
+                            <option value="no">Absent<option>
+                        </select>
+                    </div>
+                    <div class="sim-control-group">
+                        <label for="ctrl-scope">Transaction Scope</label>
+                        <select id="ctrl-scope" onchange="updateSimulator()">
+                            <option value="narrow">Narrow (write only)</option>
+                            <option value="wide">Wide (read + write)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Output -->
+                <div class="sim-output" aria-live="polite" aria-atomic="true" aria-label="Simulator results">
+                    <div class="sim-output-header">Query Cost Estimate &mdash; Flash Sale Scenario</div>
+
+                    <div class="sim-metrics">
+                        <div class="sim-metric">
+                            <div class="sim-metric-label">Estimated I/O Cost</div>
+                            <div class="sim-metric-value" id="out-io">&mdash;</div>
+                            <div id="out-io-detail" style="font-size:12px;color:#888;"></div>
+                        </div>
+                        <div class="sim-metric">
+                            <div class="sim-metric-label">Lock Hold Duration</div>
+                            <div class="sim-metric-value" id="out-lock">&mdash;</div>
+                        </div>
+                        <div class="sim-metric">
+                            <div class="sim-metric-label">Blocking Risk</div>
+                            <div id="out-risk">&mdash;</div>
+                        </div>
+                    </div>
+
+                    <div class="sime-explanation" id="out-explanation"></div>
+
+                    <div class="sim-code-header">T-SQL &mdash; Current Configuration</div>
+                    <div class="code-block" id="out-code" style="margin: 12px 18px 18px;"></div>
+                </div>
+
+            </div>
+
+                <!-- ======================================== -->
+                <!-- REFERENCE TAB                            -->
+                <!-- ======================================== -->
+                <div class="tab-panel" id="panel-reference" role="tabpanel" aria-labelledby="tab-reference">
+
+                    <h3>Measurement tools</h3>
+
+                    <div class="ref-card">
+                        <h4>SET STATISTICS TIME ON / SET STATISTICS IO ON</h4>
+                        <p>Run before your query in SSMS. Output appears in the Messages tab.</p>
+                        <div class="code-block"><span class="c-keyword">SET</span> STATISTICS TIME <span class="c-keyword">ON</span>;
+<span class="c-keyword">SET</span> STATISTICS IO <span class="c-keyword">ON</span>;
+
+<span class="c-keyword">SELECT</span> ProductId, StockQty
+<span class="c-keyword">FROM </span> Products
+<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;
+
+<span class="c-keyword">SET</span> STATISTICS TIME <span class="c-keyword">OFF</span>;
+<span class="c-keyword">SET</span> STATISTICS IO <span class="c-keyword">OFF</span>;</div>
+                    <table class="data-table" style="margin-top:12px;">
+                        <thead>
+                            <tr>
+                                <th scope="col">Output field</th>
+                                <th scope="col">What it means</th>
+                                <th scope="col">What to look for</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>logical reads</code></td>
+                                <td>Pages read from the buffer cache</td>
+                                <td>Most reliabel efficiency indicator &mdash; not skewed by load or caching</td>
+                            </tr>
+                            <tr>
+                                <td><code>physical reads</code></td>
+                                <td>Pages read from disk (not cached)</td>
+                                <td>High value means the data wasn't in memory &mdash; first-run effect is common</td>
+                            </tr>
+                            <tr>
+                                <td><code>CPU time</code></td>
+                                <td>Processor time consumed</td>
+                                <td>High relative to elapsed time = CPU-bound; low = waiting on I/0 or locks</td>
+                            </tr>
+                            <tr>
+                                <td><code>elapsed time</code></td>
+                                <td>Wall-clock duration</td>
+                                <td>Can be misleading on a busy server; use logical reads for comparison</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ref-card">
+                    <h4>sys.dm_exec_requests &mdash; live blocking check</h4>
+                    <p>Run while the database is under load to see what is blocking what.</p>
+                    <div class="code-block"><span class="c-keyword">SELECT</span>
+    r.session_id,
+    r.blocking_session_id,  <span class="c-comment">-- non-zero = this session is blocked</span>
+    r.wait_type,            <span class="c-comment">-- e.g. LCK_M_S = waiting for shared lock</span>
+    r.wait_time,            <span class="c-comment">-- milliseconds spent waiting so far</span>
+    r.status,               <span class="c-comment">-- running, suspended, sleeping</span>
+    t.text <span class="c-keyword">AS</span> query_text 
+<span class="c-keyword">FROM</span>  sys.dm_exec_requests r 
+<span class="c-keyword">CROSS</span>  <span class="c-keyword">APPLY</span> sys.dm_exec_sql_text(r.sql_handle) t
+<span class="c-keyword">WHERE</span>  r.blocking_session_id &gt; <span class="c-number">0</span> <span class="c-comment">-- only blocked sessions</span>
+<span class="c-keyword">ORDER</span> <span class="c-keyword">BY</span> r.wait_time <span class="c-keyword">DESC</span>;</div>
+                </div>
+
+                <div class="ref-card">
+                    <h4>sys.dm_tran_locks &mdash; lock Inventory</h4>
+                    <p>Shows all locks currently held or awaited. Useful when dm_exec_requests shows blocking but you need to understand what resource is contested. See the <a href="../locks/index.html">Locks</a> topic for the full query.</p>
+                </div>
+
+                <h3>Isolation level cost summary</h3>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Isolation Level</th>
+                            <th scope="col">Shared lock held until</th>
+                            <th scope="col">Blocking risk</th>
+                            <th scope="col">Best for</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Read Committed <em>(default)</em></td>
+                            <td>Row is read (released immediately)</td>
+                            <td><span class="pill pill-safe">Low</span></td>
+                            <td>Most web and application queries</td>
+                        </tr>
+                        <tr>
+                            <td>Repeatable Read</td>
+                            <td>End of transaction</td>
+                            <td><span class="pill pill-safe">Medium</span></td>
+                            <td>Multi-step reads that must see stable data</td>
+                        </tr>
+                        <tr>
+                            <td>Serializable</td>
+                            <td>End of transaction (+ range locks)</td>
+                            <td><span class="pill pill-risk">High</spand></td>
+                            <td>Batch jobs, regulatory reporting, critical totals</td>
+                        </tr>
+                        <tr>
+                            <td>Snapshot</td>
+                            <td>Not held (uses row versioning)</td>
+                            <td><span class="pill pill-safe">Low</spand></td>
+                            <td>High-concurrency reads; requires db-level config</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Transaction scope &mdash; do and don't</h3>
+
+                <div class="ref-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Inside the transaction &mdash; keep short</th>
+                                <th scope="col">Outside the transaction &mdash; do before or after</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>The INSERT, UPDATE or DELETE that must be atomic</td>
+                                <td>Validation queries (SELECT to check stock, price, etc.)</td>
+                            </tr>
+                            <tr>
+                                <td>Any reads that must be consistent with the write</td>
+                                <td>Calculations and business logic</td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td>Logging and audit writes to other systems</td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td>External API calls or email triggers</td>
+                            </tr>
+                            <tr>
+                                <td>&nbsp;</td>
+                                <td>User input or any operation that can pause or wait</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Key terms</h3>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Term</th>
+                            <th scope="col">Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Logical read</strong></td>
+                            <td>A page read from the SQL Server buffer cache (memory). The primary measure of query I/O cost.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Physical read</strong></td>
+                            <td>A page read from disk because it was not in the buffer cache. Much slower than a logical read.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Index seek</strong></td>
+                            <td>SQL Server navigates the index B-tree directly to matching rows. Efficient &mdash; reads a small number of pages.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Index scan / table scan</strong></td>
+                            <td>SQL Server reads every row in the index or table to find matches. Inefficient at scale &mdash; reads every page.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lock contention</strong></td>
+                            <td>Two or more sessions competing for the same lock. One must wait (blocking) or one is killed (deadlock).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Lock escalation</strong></td>
+                            <td>SQL Server converts many fine-grained row locks into a single coarser table lock to reduce memory overhead. Triggered at approximately 5,000 locks per object.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Transaction scope</strong></td>
+                            <td>The set of operations enclosed in a BEGIN TRANSACTION / COMMIT block. locks are held for this entire duration.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>blocking_session_id</strong></td>
+                            <td>Column in <code>sys.dm_exec_requests</code>.A non-zero value means this session is waiting for a lock held by the identified session.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>T-SQL dialect note</h3>
+
+                <div class="ref-card">
+                    <p>
+                        <strong>READ_COMMITTED_SNAPSHOT (RCSI)</strong> is a 
+                        SQL Server / Azure SQL feature that changes Read 
+                        Committed to use row versioning instead of shared 
+                        locks, eliminating most reader/writer blocking without
+                        changing application isolation level settings.
+                        Enable at the database level:
+                    </p>
+                    <div class="code-block"><span class="c-keyword">ALTER</span> <span class="c-keyword">DATABASE</span> YourDatabase
+<span class="c-keyword">SET</span> READ_COMMITTED_SNAPSHOT <span class="c-keyword">ON</span>;</div>
+                    <p style="margin-top:8px;">
+                        MySQL and PostgreSQL use MVCC (multi-version concurrency 
+                        control) by default for all reads, so reader/writer 
+                        blocking is less common in those engines without 
+                        explicit configuration.
+                    </p>
+                </div>
+
+            </div>
+            <!-- end tabs -->      
+
+         </main>
+     </div>
+
+     <!-- Site footer (populated by footer.js) -->
+    <footer id="site-footer"></footer>
+
+    <script src="../../../assets/js/nav.js"></script>
+    <script src="../../../assets/js/footer.js"></script>
+    <script src="../../../assets/js/tabs.js"></script>
+
+    <script>
+
+    /*  =================================================================
+        QUERY COST SIMULATOR DATA
+        12 combinations: 3 Isolation levels x 2 index states x 2 scopes
+        Keys: rc/rr/ser  | yes/no   |  narrow/wide
+        ================================================================= */ 
+
+    const simStates = {
+
+        /* -- READ COMMITTED ------------------------------------------*/ 
+        'rc-yes-narrow': {
+            io: 'Very low',
+            ioDetail: '~8 logical reads',
+            lock: 'Very short',
+            risk: 'low',
+            riskLabel: '&#128994; Low',
+            explanation: '<strong>Best-case configuration.</strong> Read Committed releases shared locks as soon as each row is read &mdash; it does not hold until commit. The index seek goes directly to the matching product row, touching only a handful of pages. The transaction wraps only the INSERT, so the exclusive lock on the new Orders row is held for milliseconds. Concurrent reads and writes proceed with almost no queuing.',
+            code: [
+                '<span class="c-comment">-- Session-level isolation (RC is the SQL Server default)</span>',
+                '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED;',
+                '',
+                '<span class="c-comment">-- Inventory check: runs OUTSIDE the transaction</span>',
+                '<span class="c-comment">-- Index seek on ProductId: ~8 logical reads</span>',
+                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '<span class="c-keyword">FROM</span>   Products',
+                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>;',
+                '',
+                '<span class="c-comment">-- Narrow scope: only the write is inside the transaction</span>',
+                '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+                '',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
+                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+                '',
+                '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'rc-yes-wide': {
+            io: 'Low',
+            ioDetail: '~8 logical reads',
+            lock: 'Short&ndash;medium',
+            risk: 'medium',
+            riskLabel: '&#128993; Medium',
+            explanation: '<strong>Index helps but scope hurts.</strong> Read Committed still releases shared locks row by row as the SELECT reads them, so the read itself doesn\'t block writers for long. However, by placing the SELECT inside the transaction, the exclusive lock on the new Orders row is held from the BEGIN until after the SELECT completes &mdash; everything inside the transaction runs before the COMMIT. Under moderate load this is acceptable; under flash-sale concurrency the lock hold duration starts creating a visible queue.',
+            code: [
+                '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED;',
+                '',
+                '<span class="c-comment">-- Wide scope: SELECT and INSERT both inside the transaction</span>',
+                '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+                '',
+                '   <span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
+                '   <span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '   <span class="c-keyword">FROM</span>   Products',
+                '   <span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>;',
+                '',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
+                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span<, <span class="c-number">1</span>, GETDATE());',
+                '',
+                '<span class="c-keyword">COMMIT</span>;'
+                ]
+        },
+
+        'rc-no-narrow': {
+        io: 'Medium',
+        ioDetail: '~1,200 logical reads',
+        lock: 'Short',
+        risk: 'medium',
+        riskLabel: '&#128993; Medium',
+        explanation: '<strong>Scope is tight but the scan is expensive.</strong> Without an index on ProductId, SQL Server reads every row in the Products table to find product 1042 &mdash; a full table scan. Under Read Committed, shared locks are released row by row as the scan progresses, but with 1,200+ page reads the scan itself takes time and touches many more pages. More pages touched means more shared locks acquired in sequence, even if briefly, increasing the chance of clashing with a concurrent write on any of those pages. Transaction scope is narrow, which limits the window, but the I/O cost alone will degrade performance at flash-sale scale.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED;',
+            '',
+            '<span class="c-comment">-- Inventory check: rund OUTSIDE the transaction</span>',
+            '<span class="c-comment">-- No index on ProductId: full table scan, ~1,200 logical reads</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span>   Products',
+            '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '',
+            '<span class="c-comment">-- Narrow scope: only the write is inside the transaction</span>',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+            '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'rc-no-wide': {
+        io: 'Medium&ndash;high',
+        ioDetail: '~1,200 logical reads',
+        lock: 'Medium',
+        risk: 'high',
+        riskLabel: '&#128308; High',
+        explanation: '<strong>Scan cost and wide scope combine.</strong> The full table scan burns I/O and runs entirely inside the transaction, meaning the transaction is open for the entire duration of the scan before the INSERT even begins. Under Read Committed, shared locks are released row by row, which limits some contention &mdash; but the exclusive lock on the Orders row is acquired at the INSERT and held until COMMIT, which now occurs only after the slow scan finishes. At flash-sale volumes, many concurrent sessions in this state create a sustained queue on the Orders table.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED;',
+            '',
+            '<span class="c-comment">-- Wide scope: SELECT and INSERT both inside the transaction</span>',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+                '<span class="c-comment">-- No index on ProductId: full table scan, ~1,200 logical reads</span>',
+                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '<span class="c-keyword">FROM</span>   Products',
+                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+                '',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+            '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        /* -- REPEATABLE READ ------------------------------------- */
+        'rc-yes-narrow': {
+            io: 'Low',
+            ioDetail: '~8 logical reads',
+            lock: 'Medium',
+            risk: 'medium',
+            riskLabel: '&#128993; Medium',
+            explanation: '<strong>Repeatable Read changes the locking behavior or reads.</strong> Unlike Read Commited, Repeatable Read holds shared locks on every row it reads until the transaction commits &mdash; not just until the row is passed. Even though the SELECT runs outside the BEGIN / COMMIT block here, the Repeatable Read isolation level applies to the whole session. Any shared lock acquired by the SELECT on the Products row is held until that implicit transaction ends. Writers trying to update that product row (to decrement stock) must wait. The index seek keeps I/O low, but the lock hold creates contention on busy Products rows during a flash sale.',
+            code: [
+                '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL REPEATABKLE READ;',
+                '',
+                '<span class="c-comment">-- Inventory check: outside explicit transaction</span>',
+                '<span class="c-comment">-- BUT: RR holds S locks until the implicit transaction ends</span>',
+                '<span class="c-comment">-- Index seek on ProductId: ~8 logical reads</span>',
+                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '<span class="c-keyword">FROM</span> Products',
+                '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
+                '',
+                '<span class="c-comment">-- Narrow scope: only the write is inside the transaction</span>',
+                '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+                '',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, Qty, OrderDate)',
+                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+                '',
+                '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'rr-yes-wide': {
+        io: 'Low',
+        ioDetail: '~8 logical reads',
+        lock: 'Long',
+        risk: 'high',
+        riskLabel: '&#128308; High',
+        explanation: '<strong>Repeatable Read + wide scope is a significant contention risk.</strong> Shared locks on the Products row are acquired by the SELECT and held until the transaction commits &mdash; which now happens only after the INSERT completes. Any other session trying to update the stock count for product 1042 (to process another order) must wait for the entire duration: SELECT + INSERT + COMMIT. During a flash sale with thousands of concurrent orders for the same product, this creates a queue. The index seek keeps I/O efficient; the problem is entirely lock duration.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL REPEATABLE READ;',
+            '',
+            '<span class="c-comment">-- Wide scope: SELECT and INSERT both inside the transaction</span>',
+            '<span class="c-comment">-- S lock on Products row held for the entire transaction duration</span>',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+            '   <span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
+            '   <span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '   <span class="c-keyword">FROM</span>   Products',
+            '   <span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1</span>, GETDATE());',
+            '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'rr-no-narrow': {
+        io: 'Medium',
+        ioDetail: '~1,200 logical reads',
+        lock: 'Medium&ndash;long',
+        risk: 'high',
+        riskLabel: '&#128308; High',
+        explanation: '<strong>Full scan under Repeatable Read holds locks on every page touched.</strong> The absence of an index means SQL Server scans the entire Products table. Under Repeatable Read, shared locks are acquired on every page read and held until the transaction ends &mdash; not released row by row as under Read Committed. With 1,200+ pages scanned, this creates a broad lock footprint across the Procuts table. Any writer trying to update any of those rows must wait for all those locks to be released. At scale, this can bring the Products table to a near-standstill during the scan.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL REPEATABLE READ;',
+            '',
+            '<span class="c-comment">-- Inventory check: outside explicit transaction</span>',
+            '<span class="c-comment">-- No index: full table scan, ~1,200 logical reads</span>',
+            '<span class="c-comment">-- RR holds S locks on every scanned page until implicit txn ends</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span>   Products',
+            '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+            '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'rr-no-wide': {
+        io: 'High',
+        ioDetail: '~1,200 logical reads',
+        lock: 'Very long',
+        risk: 'high',
+        riskLabel: '&#128308; High',
+        explanation: '<strong>Worst Repeatable Read case: scan + wide scope + held locks. </strong> The full Products table scan rund inside the transaction, acquiring shared locks on every page and holding them all unitl COMMIT. The COMMIT occurs only after the INSERT finishes. This combines maximum I/O cost with maximum lock hold duration. At flash-scale sale with many concurrent sessions doing the same thing, the Products table can accumulate enough page-level locks to trigger lock escalation to a table lock, which the serializes all access to the entire table.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL REPEATABLE READ;',
+            '',
+            '<span class="c-comment">-- Wide scope: full scan + INSERT inside the transaction</span>',
+            '<span class="c-comment">-- S locks held on ~1,200 pages until COMMIT</span>',
+            '<span class="c-comment">-- Risk of lock escalation to table at this volume</span>',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+                '<span class="c-comment">-- No index: full table scan</span>',
+                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '<span class="c-keyword">FROM</span>   Products',
+                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+                '',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+                '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        /* -- SERIALIZABLE -------------------------------------------------- */ 
+        'ser-yes-narrow': {
+            io: 'Low',
+            ioDetail: '~8 logical reads',
+            lock: 'Medium',
+            risk: 'medium',
+            riskLabel: '&#128993; Medium',
+            explanation: '<strong>Serializable adds range locks even with an efficient seek.</strong> Serializable prevents phantom reads by placing range locks on the index range that your WHERE clause covers &mdash; not just the row that was found. This means no other session can INSERT a new row for product 1042 (or any ProductId in the locked range) while your lock is held. The index seek is still fast and the transcription scope is narrow, but range locks are held longer than Read Committed\'s shared locks and block a broader set of concurrent operations &mdash; including inserts of new products, not just updates to existing ones.',
+            code: [
+                '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;',
+                '',
+                '<span class="c-comment">-- Inventory check: outside explicit transaction</span>',
+                '<span class="c-comment">-- Serializable adds range locks on the ProductId index range</span>',
+                '<span class="c-comment">-- Index seek: ~8 logical reads, but range lock blocks INSERTs too</span>',
+                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '<span class="c-keyword">FROM</span>   Products',
+                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>;',
+                '',
+                '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+                '',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, Qty, OrderDate)',
+                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+                '',
+                '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'ser-yes-wide': {
+        io: 'Low',
+        ioDetail: '~8 logical reads',
+        lock: 'Long',
+        risk: 'high',
+        riskLabel: '&#128308; High',
+        explanation: '<strong>Range locks held for the full transaction duration.</strong> The index seek is efficient, but Serializable\'s range locks are now held from the SELECT through to the COMMIT that follows the INSERT. During a flash sale, every concurrent session trying to check or update product 1042 must queue behind these range locks. At high concurrency this creates a serializing bottleneck &mdash; sessions cannot proceed in parallel even though each individual query is fast. This is the classic case where Serializable turns a fast, correct query into a scalability problem.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;',
+            '',
+            '<span class="c-comment">-- Wide scope: SELECT and INSERT both inside the transaction</span>',
+            '<span class="c-comment">-- S lock on Products row held for the entire transaction duration</span>',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+            '   <span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
+            '   <span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '   <span class="c-keyword">FROM</span>   Products',
+            '   <span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1</span>, GETDATE());',
+            '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'ser-no-narrow': {
+        io: 'Medium',
+        ioDetail: '~1,200 logical reads',
+        lock: 'Long',
+        risk: 'high',
+        riskLabel: '&#128308; High',
+        explanation: '<strong>Range locks across a full scan produce a very broad lock footprint.</strong> Without an index, Serializable must scan the whole Products table to find product 1042. Range locks are placed across the entire scanned range to prevent phantoms &mdash; which, on a full table scan, effectively means range locks covering every ProductId in the table. This prevents any INSERT of a new product until the locks are released. Even with narrow transaction scope, the scan itself takes time and the range locks it holds affect the entire Products table, not just the product being checked.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;',
+            '',
+            '<span class="c-comment">-- No index: full table scan</span>',
+            '<span class="c-comment">-- Serializable range locks cover the entire scanned range</span>',
+            '<span class="c-comment">-- Effectively locks the whole Products table against INSERTs</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span>   Products',
+            '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+            '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+
+        'ser-no-wide': {
+        io: 'Very high',
+        ioDetail: '~1,200 logical reads',
+        lock: 'Very long',
+        risk: 'high',
+        riskLabel: '&#128308; High',
+        explanation: '<strong>Worst case: Serializable + full scan + wide scope. </strong> The full table scan runs inside the transaction. Range locks covering every scanned page are held from the first SELECT row through to the final COMMIT. No other session can read, update or insert into the Products table range for the entire duration. Under flash-sale load with many concurrent sessions, this configuration effectively serializes all access to the Products table &mdash; sessions queue one behind the other. This is the combination most likely to produce site-wide checkout failures at scale.',
+        code: [
+            '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;',
+            '',
+            '<span class="c-comment">-- Worst case: Full scan + wide scope nuder Serializable</span>',
+            '<span class="c-comment">-- Range locks on every scanned page held until COMMIT</span>',
+            '<span class="c-comment">-- Effectively serializes all concurrent access to Products</span>',
+            '<span class="c-keyword">BEGIN</span> TRANSACTION;',
+            '',
+                '<span class="c-comment">-- No index: full table scan, ~1,200 logical reads</span>',
+                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '<span class="c-keyword">FROM</span>   Products',
+                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+                '',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
+                '',
+            '<span class="c-keyword">COMMIT</span>;'
+            ]
+        },
+    };
+
+/* =========================================================
+   SIMULATOR RENDER FUNCTION
+   ========================================================= */ 
+function updateSimulator() {
+    const il    = document.getElementById('ctrl-isolation').value;
+    const ix    = document.getElementById('ctrl-index').value;
+    const scope = document.getElementById('ctrl-scope').value;
+
+    const key = il + '-' + ix + '-' + scope;
+    const state = simStates[key];
+    if (!state) return;
+
+    /* Metrics */ 
+    document.getElementById('out-io').innerHTML        = state.io;
+    document.getElementById('out-io-detail').textContent = state.ioDetail;
+    document.getElementById('out-lock').innerHTML      = state.lock;
+
+    /* Risk badge */ 
+    const riskEl = document.getElementById('out-risk');
+    riskEl.innerHTML = '<span class="risk-badge risk-' + state.risk + '">' + state.riskLabel + '</span>';
+
+    /* Explanation */ 
+    document.getElementById('out-explanation').innerHTML = state.explanation;
+
+    /* Code block */ 
+    document.getElementById('out-code').innerHTML = state.code.join('\n');
+}
+
+/* Render default state on load */ 
+updateSimulator();
+
+</script>
+
+</body>
+</html>
