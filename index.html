@@ -66,17 +66,35 @@
 
 <div class="layout">
 
-    <!-- Sidebar -->
-     <nav id="sidebar"></nav>
+<!-- Sidebar -->
+<nav id="sidebar"></nav>
    
-    <!-- Welcome content -->
-    <main>
-        <h2>Welcome to the SQL Field Guide</h2>
+<!-- Welcome content -->
+<main>
+    <section class="hero">
+        <div class="query-block">
+            <span class="q-keyword">SELECT</span> mental_model
+            <span class="q-keyword">FROM</span> sql-field-guide
+            <span class="q-keyword">WHERE</span> confusion = <span class="q-string">true</span>;<span class="q-cursor"></span>
+        </div>
+        <table class="result-table" aria-label="Tier completeness overview">
+            <thead>
+                <tr><th>tier</th><th>status</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Beginner</td><td>planned</td></tr>
+                <tr><td>Intermediate</td><td>Transactions &amp; Concurrency complete</td></tr>
+                <tr><td>Advanced</td><td>planned</td></tr>
+            </tbody>
+        </table>
 
-        <p>This is a community-built reference guide for SQL learners who have
-            some coursework or hands-on experience and want clearer mental models
-            for the concepts that textbooks or online courses tend to move past
-            too quickly.
+        <h2>Welcome to the SQL Field Guide</h2>   
+            
+        <p class="lead">
+            SQL Field Guide is a free, interactive reference for anyone learning SQL &mdash; 
+            whether you're working through a first course or already writing queries on the job
+            and want to understand what's really happening under the hood. No sign-up, paywall, 
+            just clear explanations with hands-on examples.
         </p>
 
         <div class="notice">
@@ -85,50 +103,43 @@
             by topic. If something is missing, incomplete or could be explained
             more clearly, contributions are welcome. 
         </div>
+    </section>
 
-        <h3>Who is this for</h3>
-        <p>
-            <span class="tag">Beginner</span> Students in the first SQL courses
-            or those building foundational knowledge. No prior database experience
-            assumed.
-        </p>
-        <p>
-            <span class="tag">Intermediate</span> Learners who can write SQL 
-            confidently but want to understand what the database engine is doing:
-            transactions, locking, joins and query behavior. Suitable for 
-            coursework, college studies and early professional work.
-        </p>
-        <p>
-            <span class="tag">Advanced</span> Practitioners who use SQL
-            professionally and want to go deeper into performance, Concurrency
-            patterns and query optmization.
-        </p>
 
-        <h3>How to use this field guide</h3>
-        <p>
-            Use the sidebar to the left to find a topic. Each topic page has three sections:
-        </p>
-        <p>
-            <strong>Explainer</strong> - the mental mode and plain-English 
-            reasoning behind the concept.
-        </p>
-        <p>
-            <strong>Interactive</strong> - a hands-on widget to explore the concept
-            yourself.
-        </p>
-        <p>
-            <strong>Reference</strong> - a compact cheat sheet to return to after
-            you understand the topic.
-        </p>
+    <h3>Who is this for?</h3>
+    <div class="tier-grid">
+        <div class="tier-card beginner">
+            <h4>Beginner</h4>
+            <p> Students in the first SQL courses or those building 
+            foundational knowledge. No prior database experience assumed.</p>
+        </div>
+        <div class="tier-card intermediate">
+            <h4>Intermediate</h4>
+            <p>Learners who can write SQL confidently but want to understand
+            what the database engine is doing: transactions, locking, joins
+            and query behavior.</p>
+        </div>
+        <div class="tier-card advanced">
+            <h4>Advanced</h4>
+            <p> Practitioners who use SQL professionally and want to go deeper
+            into performance, Concurrency patterns and query optimization.</p>
+        </div>
+    </div>
 
-        <h3>Limitations</h3>
-        <p>
-            This guide focuses on <strong>Microsoft SQL Server and T-SQL</strong>
-            unless otherwise noted. Examples may not transfer directly to MySQL,
-            PostgreSQL or other dialects without adjustment. Where behavior
-            differs significantly between databases, a note is included.
-        </p>
-    </main>
+
+    <h3>How to use this field guide</h3>
+    <p>Use the sidebar to the left to find a topic. Each topic page has three sections:</p>
+    <p><strong>Explainer</strong> - the mental model and plain-English reasoning behind the concept.</p>
+    <p><strong>Interactive</strong> - a hands-on widget to explore the concept yourself.</p>
+    <p><strong>Reference</strong> - a compact cheat sheet to return to after you understand the topic.</p>
+
+    <h3>Limitations</h3>
+    <p> This guide focuses on <strong>Microsoft SQL Server and T-SQL</strong>
+        unless otherwise noted. Examples may not transfer directly to MySQL,
+        PostgreSQL or other dialects without adjustment. Where behavior
+        differs significantly between databases, a note is included.
+    </p>
+</main>
 
 </div>
 
