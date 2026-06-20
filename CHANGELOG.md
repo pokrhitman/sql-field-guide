@@ -5,6 +5,68 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-20 — Session 10
+
+### Changed
+- **Home page (`index.html`) — full visual restyle, Part A of the
+  post-chapter style polish pass.** Replaces the "Who is this for" prose
+  block with a query/result-set hero, and applies a cohesive token-based
+  palette across header, hero, content area, sidebar and footer.
+  - New CSS custom properties in `main.css`: `--navy-deep`, `--bg-page`,
+    `--accent-indigo`, `--accent-amber`, `--accent-green`, `--mono-font`
+    (system monospace stack — no webfont dependency).
+  - **Hero**: new `.query-block` / `.result-table` components — a styled
+    mock SQL query ("SELECT mental_model FROM sql-field-guide WHERE
+    confusion = true;") with an animated cursor, followed by a results
+    table showing live tier-completion status (Beginner: planned,
+    Intermediate: Transactions & Concurrency complete, Advanced: planned).
+    Replaces the original static "Who is this for" prose intro.
+  - **Lead copy**: new `.lead` paragraph — plain-English summary for
+    non-technical visitors (LinkedIn/search traffic), positioned directly
+    under the hero, ahead of the "Work in progress" notice.
+  - **Tier cards**: new `.tier-grid` / `.tier-card` components replacing
+    the old `.tag`-based "Who is this for" section — three color-coded
+    cards (green/indigo/red for Beginner/Intermediate/Advanced) matching
+    the sidebar's new tier accent colors.
+  - **Typography**: `body` font stack changed from generic `sans-serif` to
+    a system-UI stack (`-apple-system, "Segoe UI", Roboto, ...`); `main
+    h2`/`h3` restyled with tighter letter-spacing, navy/ink colors, and a
+    hairline divider under `h3`; `main p` line-height and color refined.
+  - **Header**: background deepened to `--navy-deep`; layout changed from
+    `justify-content: space-between` to `flex-start` with a fixed `gap`,
+    so social buttons sit near the title instead of drifting to the far
+    edge on wide viewports.
+  - **Sidebar**: tier buttons (`.tier-btn`) get a colored left accent bar
+    (6px, tier-specific) via new `#tier-btn-beginner` /
+    `#tier-btn-intermediate` / `#tier-btn-advanced` rules; `.category-label`
+    recolored to match its tier instead of flat gray; `.topic-link.active`
+    updated to the new navy/indigo tokens; `.topic-link.disabled` now
+    italicized; `nav` background tinted toward indigo (`#f1f2f8`) to read
+    as a distinct panel rather than blending into the footer.
+  - **Footer**: background shifted to a warm neutral (`#faf9f7`) distinct
+    from the sidebar's indigo tint; text now left-aligns to the same
+    horizontal position as the main content column (`padding-left: 288px`,
+    matching sidebar width + main's padding) instead of spanning the full
+    viewport width; line-height tightened.
+
+### Fixed
+- Root `index.html`: shared script paths corrected from
+  `../../../assets/js/...` to `assets/js/...` — the root file is not
+  three folders deep, so the previous paths silently 404'd on GitHub
+  Pages (consistent with the path-depth bug class noted in Session 08/09).
+- `main.css`: invalid `line-height: 1.6px` on `.tier-card p` corrected to
+  `line-height: 1.6` — the `px` unit collapsed line height to 1.6 pixels,
+  causing wrapped paragraph lines to render stacked on top of each other.
+- `main.css`: `.result-table { width: 100; }` corrected to `width: 100%`
+  — missing unit made the declaration invalid.
+- `index.html`: `&amp Concurrency` corrected to `&amp; Concurrency` in the
+  hero result table (missing semicolon on the HTML entity).
+- `index.html`: "mental mode" corrected to "mental model" in the "How to
+  use this field guide" section (pre-existing typo, caught while
+  restyling the surrounding content).
+
+---
+
 ## 2026-06-20 — Session 09
 
 ### Added
@@ -332,12 +394,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ## Planned
 
-- **Session 09 — Performance Basics:** closes out the Transactions &
-  Concurrency chapter as a complete six-topic sequence (ACID Properties →
-  Transactions → Locks → Isolation Levels → Concurrency Conflicts →
-  Performance Basics).
+- **Session 11 — Article page style pass (Part B):** extends the Session
+  10 restyle to the six Transactions & Concurrency topic pages (Explainer/
+  Interactive/Reference tabs, concept blocks, detail cards, step-through
+  timeline widget, code blocks, reference cards). Longer session — six
+  pages to inspect individually rather than one shared shell.
 
-- **Session 10 — Beginner tier:** sequence to be drafted working sequentially
+- **Beginner tier:** sequence to be drafted working sequentially
   from true beginnings. The "coming soon" placeholders added in Session 08 act as a
   rough roadmap; liberty to reorder, split, or add topics as makes sense.
 
