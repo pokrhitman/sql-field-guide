@@ -5,6 +5,56 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## 2026-06-21 — Session 10 (Part B — ACID Properties & Transactions)
+
+### Changed
+- **ACID Properties (`acid-properties/index.html`) and Transactions
+  (`transactions/index.html`) — full visual restyle, continuing the
+  post-chapter style polish pass started with the home page in Part A.**
+  - **Explainer tab**: `.concept-block` now uses a tinted indigo
+    background with a left-border accent, replacing the flat grey box,
+    to visually mark it as Explainer-tier content.
+  - **New `.keyword-card` component** (Transactions page): compact,
+    code-flavored definition card for the four keyword/undo-stack
+    callouts (`BEGIN TRANSACTION`, `COMMIT`, `ROLLBACK`,
+    `SAVE TRANSACTION`), replacing repeated `.concept-block` instances
+    that were cluttering the page when used six times in a row.
+  - **Interactive tab**: `.detail-card` now uses a green top-border
+    accent to distinguish it from Explainer content; new
+    `.stat-grid`/`.stat-card`/`.stat-label`/`.stat-value` components
+    replace inline-styled balance readouts (ACID page).
+  - **New `.tl-step-code` component** (Transactions page): SQL statement
+    steps in the interactive walkthrough now render in the same dark
+    navy/mono style as `.code-block`, visually distinct from the
+    lighter Undo Stack annotations (`.tl-step`).
+  - **Reference tab**: `.ref-card code` switched from a light grey
+    background to the dark navy/mono `.code-block` palette, unifying
+    all SQL-bearing reference snippets across the site.
+  - **Footer**: now auto-hides on scroll within `<main>` (CSS
+    `max-height` transition + `footer.footer-hidden` class), instead of
+    permanently reserving a fixed strip at the bottom of the viewport.
+    Visibility re-syncs explicitly on tab switch (`updateFooterVisibility()`
+    called from `switchTab()`) to avoid stale state when switching to a
+    shorter tab without a scroll event firing.
+  - Token-based custom properties (`--navy-deep`, `--accent-indigo`,
+    `--accent-green`, `--mono-font`) introduced in Part A now used
+    consistently across both pages in place of hardcoded hex values.
+
+### Fixed
+- `.detail-card` top border not rendering — fixed border settings.
+- `renderCard()` (ACID page) — `ReferenceError` on undeclared
+  `savingsNeg`/`currentNeg` variables (declared as `savingsColor`/
+  `currentColor`), silently breaking the entire Interactive tab.
+- Step-controls spacing (Transactions interactive tab) — invalid inline
+  style `margin-top: 16 px` (stray space) silently dropped by the
+  browser; moved to a proper `.step-controls` rule in `main.css`.
+- Margin-collapsing bug (ACID page) — `.detail-card`'s top margin
+  collapsed through its empty `#acid-card` wrapper, reducing the gap
+  between the property-select buttons and the result card. Fixed via
+  `display: flow-root` on `#acid-card`.
+- Minor copy typos across both pages 
+
+
 ## 2026-06-20 — Session 10
 
 ### Changed
@@ -394,11 +444,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ## Planned
 
-- **Session 11 — Article page style pass (Part B):** extends the Session
-  10 restyle to the six Transactions & Concurrency topic pages (Explainer/
-  Interactive/Reference tabs, concept blocks, detail cards, step-through
-  timeline widget, code blocks, reference cards). Longer session — six
-  pages to inspect individually rather than one shared shell.
+- **Carry the established Part B conventions from the HTML and style refactor
+  (indigo = Explainer, green = Interactive, dark navy/mono = code/reference) 
+  forward to Locks, Isolation Levels, Concurrency Conflicts and Performance Basics.
+- Audit other topic pages' interactive-tab result wrappers for the same
+  margin-collapse pattern fixed on `#acid-card`.
 
 - **Beginner tier:** sequence to be drafted working sequentially
   from true beginnings. The "coming soon" placeholders added in Session 08 act as a

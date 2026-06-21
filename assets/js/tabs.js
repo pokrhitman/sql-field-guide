@@ -12,4 +12,8 @@ function switchTab(name, event) {
     document.getElementById('panel-' + name).classList.add('active');
     event.target.classList.add('active');
     event.target.setAttribute('aria-selected', 'true');
+
+    const mainEl = document.querySelector('main');
+    if (mainEl) mainEl.scrollTop = 0;
+    if (typeof updateFooterVisibility == 'function') updateFooterVisibility();
 }

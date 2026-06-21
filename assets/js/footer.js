@@ -45,4 +45,25 @@ function renderFooter() {
     container.innerHTML = buildFooterHTML();
 }
 
-document.addEventListener("DOMContentLoaded", renderFooter);
+function updateFooterVisibility () {
+    const mainEl = document.querySelector("main");
+    const footerEl = document.getElementById("site-footer");
+    if (!mainEl || !footerEl) return;
+
+    if (mainEl.scrollTop > 40) {
+        footerEl.classList.add("footer-hidden");
+    } else {
+        footerEl.classList.remove("footer-hidden");
+    }
+}
+
+function setupFooterAutoHide() {
+    const mainEl = document.querySelector("main");
+    if (!mainEl) return;
+    mainEl.addEventListener("scroll", updateFooterVisibility);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    renderFooter()
+    setupFooterAutoHide();
+});

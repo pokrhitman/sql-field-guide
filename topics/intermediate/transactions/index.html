@@ -47,7 +47,7 @@
         <strong>Before this topic:</strong> you should be comfortable writing 
         basic SELECT, INSERT, UPDATE and DELETE queries. It also helps to have
         read <a href="../acid-properties/index.html" style="color: #5c6bc0;">ACID Properties</a>
-        first - this stage explains the mechanics behind the gurantees that 
+        first - this stage explains the mechanics behind the guarantees that 
         ACID Properties introduces.
     </div>
 
@@ -87,13 +87,13 @@
             <p>
                 When the transaction ends, one of two things happens to the stack:
             </p>
-            <div class="concept-block">
-                <h4>COMMIT - discard the stack</h4>
+            <div class="keyword-card">
+                <h4>COMMIT --discard the stack</h4>
                 <p>The changes are written permanently to the database. The stack
                 is no longer needed and is discarded. There is nothing left to undo.</p>              </p>
             </div>
-            <div class="concept-block">
-                <h4>ROLLBACK - pop the entire stack</h4>
+            <div class="keyword-card">
+                <h4>ROLLBACK --pop the entire stack</h4>
                 <p>Every change on the stack is reversed, in reverse order, back to
                 the state before the transaction started. the database is restored
                 exactly as it was.</p>
@@ -105,24 +105,24 @@
             </p>
 
             <h3>The four keywords</h3>
-            <div class="concept-block">
+            <div class="keyword-card"">
                 <h4>BEGIN TRANSACTION</h4>
                 <p>Opens the transaction and starts the stack. Every statement 
                 from this point forwards is part of the transaction until it is 
                 ended with COMMIT and ROLLBACK.</p>
             </div>
-            <div class="concept-block">
+            <div class="keyword-card"">
                 <h4>COMMIT</h4>
                 <p>Ends the transaction successfully. All changes are made 
                 permanent and visible to other sessions. The stack is discarded.</p>
             </div>
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>ROLLBACK</h4>
                 <p>Ends the transaction by undoing all changes. The database 
                 returns to the state it was before BEGIN TRANSACTION. Typically
                 used in a CATCH block when an error is detected.</p>
             </div>
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>SAVE TRANSACTION (savepoint)</h4>
                 <p>Places a named marker in the stack without ending the 
                 transaction. A subsequent ROLLBACK TO that name pops the stack 
@@ -138,8 +138,7 @@
             </p>
             <p>
                 <strong>Step 1</strong> - Insert a new row into the Orders table.<br />
-                <strong>Step 2</strong> - Deduct the oredered quantity from the 
-                Inventory table.
+                <strong>Step 2</strong> - Deduct the oredered quantity from the Inventory table.<br />
                 <strong>Step 3</strong> - Insert a row into the FullfilmentLog table
                 recording the outcome.
             </p>
@@ -201,7 +200,7 @@
 
                 <div class="step-narrative" id="step-narrative" aria-live="polite"></div>
 
-                <div class="step-controls" style="margin-top: 16 px;" role="group" aria-label="Step navigation.">
+                <div class="step-controls" role="group" aria-label="Step navigation.">
                     <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&#8592; Previous</button> 
                     <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &#8594;</button> 
                     <button class="step-btn secondary" onclick="resetSteps()">&#8635; Restart</button> 
@@ -423,7 +422,7 @@ const sqlSteps = [
     'SAVE TRANSACTION after_order;',
     'UPDATE Inventory SET Stock = Stock - 1 ... ;',
     '-- Stock check fails: item out of stock',
-    'ROLLBACK TRANSACTION after order;',
+    'ROLLBACK TRANSACTION after_order;',
     'INSERT INTO FulfilemntLog ... {\'Backorder\'};',
     'COMMIT;',
 ];
@@ -501,7 +500,7 @@ function buildTimeLine() {
     col.innerHTML = '';
     sqlSteps.forEach((text, i) => {
         const div = document.createElement('div');
-        div.className = 'tl-step';
+        div.className = 'tl-step-code';
         div.id = 'sql-' + i;
         div.textContent = text;
         col.appendChild(div);
@@ -537,7 +536,7 @@ function renderStep(index) {
 
     step.sql.forEach((cls, i) => {
         const el = document.getElementById('sql-' + i);
-        el.className = 'tl-step' + (cls ? ' ' + cls : '');
+        el.className = 'tl-step-code' + (cls ? ' ' + cls : '');
     });
 
     renderStack(step.stack);
