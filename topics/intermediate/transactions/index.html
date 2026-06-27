@@ -45,9 +45,9 @@
 
     <div class="prereq">
         <strong>Before this topic:</strong> you should be comfortable writing 
-        basic SELECT, INSERT, UPDATE and DELETE queries. It also helps to have
+        basic <strong><code>SELECT, INSERT, UPDATE</code></strong> and <strong><code>DELETE</code></strong> queries. It also helps to have
         read <a href="../acid-properties/index.html" style="color: #5c6bc0;">ACID Properties</a>
-        first - this stage explains the mechanics behind the guarantees that 
+        first &mdash; this stage explains the mechanics behind the guarantees that 
         ACID Properties introduces.
     </div>
 
@@ -78,11 +78,11 @@
 
             <h3>The undo stack</h3>
             <p>
-                Think of an active transaction as a stack of changes. Every INSERT,
-                UPDATE or DELETE you execute inside the transaction is pushed onto
-                the stack. The stack is private to your transaction - no other 
-                session can see it. SQL Server records everything needed to reverse
-                each change.
+                Think of an active transaction as a stack of changes. Every <strong><code>
+                INSERT, UPDATE</code></strong> or <strong><code>DELETE</code></strong> 
+                you execute inside the transaction is pushed onto the stack. The stack 
+                is private to your transaction &mdash; no other session can see it. 
+                SQL Server records everything needed to reverse each change.
             </p>
             <p>
                 When the transaction ends, one of two things happens to the stack:
@@ -90,7 +90,7 @@
             <div class="keyword-card">
                 <h4>COMMIT --discard the stack</h4>
                 <p>The changes are written permanently to the database. The stack
-                is no longer needed and is discarded. There is nothing left to undo.</p>              </p>
+                is no longer needed and is discarded. There is nothing left to undo.</p>
             </div>
             <div class="keyword-card">
                 <h4>ROLLBACK --pop the entire stack</h4>
@@ -101,15 +101,15 @@
             <p>
                 This mental model also explains why uncomitted changes are invisible
                 to other transactions: the stack is private. Other sessions only see
-                the data after a COMMIT makes the changes public.
+                the data after a <strong>COMMIT</strong> makes the changes public.
             </p>
 
             <h3>The four keywords</h3>
-            <div class="keyword-card"">
+            <div class="keyword-card">
                 <h4>BEGIN TRANSACTION</h4>
                 <p>Opens the transaction and starts the stack. Every statement 
                 from this point forwards is part of the transaction until it is 
-                ended with COMMIT and ROLLBACK.</p>
+                ended with <strong>COMMIT</strong> and <strong>ROLLBACK</strong>.</p>
             </div>
             <div class="keyword-card"">
                 <h4>COMMIT</h4>
@@ -119,15 +119,15 @@
             <div class="keyword-card">
                 <h4>ROLLBACK</h4>
                 <p>Ends the transaction by undoing all changes. The database 
-                returns to the state it was before BEGIN TRANSACTION. Typically
-                used in a CATCH block when an error is detected.</p>
+                returns to the state it was before <strong>BEGIN TRANSACTION</strong>. 
+                Typically used in a <strong>CATCH</strong> block when an error is detected.</p>
             </div>
             <div class="keyword-card">
                 <h4>SAVE TRANSACTION (savepoint)</h4>
                 <p>Places a named marker in the stack without ending the 
-                transaction. A subsequent ROLLBACK TO that name pops the stack 
-                back to the marker - undoing only the changes made after it - 
-                while leaving the transaction open. Changes made before the 
+                transaction. A subsequent <strong>ROLLBACK TO</strong> that name unwinds
+                the stack to the marker &mdash; undoing only the changes made after it
+                &mdash; while leaving the transaction open. Changes made before the 
                 savepoint are preserved.</p>
             </div>
 
@@ -137,18 +137,18 @@
                 all inside one transaction:
             </p>
             <p>
-                <strong>Step 1</strong> - Insert a new row into the Orders table.<br />
-                <strong>Step 2</strong> - Deduct the oredered quantity from the Inventory table.<br />
-                <strong>Step 3</strong> - Insert a row into the FullfilmentLog table
+                <strong>Step 1</strong> &mdash; Insert a new row into the Orders table.<br />
+                <strong>Step 2</strong> &mdash; Deduct the oredered quantity from the Inventory table.<br />
+                <strong>Step 3</strong> &mdash; Insert a row into the FullfilmentLog table
                 recording the outcome.
             </p>
             <p>
                 The business rule is: if Step 2 fails because the item is out of 
-                stock, do not cancel the order - keep the order record and log a 
+                stock, do not cancel the order &mdash; keep the order record and log a 
                 backorder status instead. Only the stock deduction should be undone.
             </p> 
             <p>
-                Without a savepoint, any error would trigger a full ROLLBACK,
+                Without a savepoint, any error would trigger a full <strong>ROLLBACK</strong>,
                 losing the order record along with the failed stock deduction. With 
                 a savepoint placed after Step 1, the transaction can roll back to
                 that marker on a Step 2 failure, preserving the order record, and 
@@ -168,7 +168,7 @@
 
                 <p style="margin-bottom:16px; font-size:13px; color:#666; ">
                     Step through the order fulfilment transaction. Whatch the undo stack
-                    on the right update at each step - showing what SQL Server would 
+                    on the right update at each step &mdash; showing what SQL Server would 
                     need to reverse if a ROLLBACK were called at that moment.
                 </p>
 
@@ -225,34 +225,33 @@
                 <h4>Basic transaction</h4>
                 <code>BEGIN TRANSACTION;</code>
                 <p>The simplest pattern: open a transaction, do the work, commit.
-                If anything goes wrong before COMMIT, call ROLLBACK to undo 
-                everything.</p>
+                If anything goes wrong before <strong>COMMIT</strong>, call <strong>ROLLBACK</strong>
+                to undo everything.</p>
             </div>
 
             <div class="ref-card">
                 <h4>Transaction with error handling</h4>
                 <code>BEGIN TRY ... END TRY BEGIN CATCH ... END CATCH;</code>
-                <p>Wrap the transaction in a TRY/CATCH block. If any statement 
-                raises an error, execution jumps to the CATCH block. Check 
-                XACT_STATE() before rolling back - after some errors SQL Server 
+                <p>Wrap the transaction in a <strong>TRY / CATCH</strong> block. 
+                If any statement raises an error, execution jumps to the <strong>CATCH</strong>block.
+                Check <strong>XACT_STATE()</strong> before rolling back &mdash; after some errors SQL Server 
                 has already rolled back automatically.</p>
             </div>
 
             <div class="ref-card">
                 <h4>Savepoint with a partial rollback</h4>
                 <code>SAVE TRANSACTION savepoint_name;</code>
-                <p>Place a named marker in the transaction. Use 
-                ROLLBACK TRANSACTION savepoint_name to undo only the work done 
-                after a marker, leaving the transaction open and earlier
+                <p>Place a named marker in the transaction. Use <strong>ROLLBACK TRANSACTION savepoint_name</strong>
+                to undo only the work done after a marker, leaving the transaction open and earlier
                 changes intact.</p>
             </div>
 
             <!--  Dialect comparison -->
             <h3>Savepoint syntax across dialetcs</h3>
             <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
-                Standard SQL, MySQL and PostgreSQL use a different savepoint 
-                syntax to T-SQL. If your coursework or prior experience used 
-                a different database, the keywords will look unfamiliar here.
+                Standard SQL, MySQL and PostgreSQL use a different savepoint syntax to T-SQL. 
+                If your coursework or prior experience used a different database, the keywords 
+                will look unfamiliar here.
             </p>
 
             <table class="data-table">
@@ -277,7 +276,8 @@
                     <tr>
                         <td>Release a savepoint</td>
                         <td><code>RELEASE SAVEPOINT name</code></td>
-                        <td>Not supported - saveppoints are discarded automatically on COMMIT or full ROLLBACK</td>
+                        <td>Not supported &mdash; savepoints are discarded automatically on <strong>COMMIT</strong>
+                        or full <strong>ROLLBACK</strong></td>
                     </tr>
                 </tbody>
             </table>
@@ -285,15 +285,13 @@
             <div class="notice">
                 <strong>T-SQL trap: ROLLBACK TRANSACTION with and without a name
                 behave differently.</strong><br />
-                <code>ROLLBACK TRANSACTION</code> - no argument - undoes 
-                <em>everything</em> back to the BEGIN and ends the transaction.<br />
-                <code>ROLLBACK TRANSACTION name</code> - with a savepoint name - 
-                undoes only the work done after that savepoint and 
-                <em>leaves the transaction open</em>.<br /><br />
-                The keyword is identical. The presence or absence of the savepoint 
-                name is the only difference. This is a common source of bugs when
-                moving from other databases to SQL Server, or when reading T-SQL 
-                code for the first time.
+                <code>ROLLBACK TRANSACTION</code> &mdash; no argument &mdash; undoes 
+                <em>everything</em> back to the <code>BEDING</code> and ends the transaction.<br />
+                <code>ROLLBACK TRANSACTION name</code> &mdash; with a savepoint name &mdash; 
+                undoes only the work done after that savepoint and <em>leaves the transaction open</em>.<br />
+                The keyword is identical. The presence or absence of the savepoint name is the only difference. 
+                This is a common source of bugs when moving from other databases to SQL Server, 
+                or when reading T-SQL code for the first time.
             </div>
 
             <!-- Full syntax reference -->

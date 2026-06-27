@@ -48,9 +48,9 @@
         <h2>Locks</h2>
 
         <div class="prereq">
-            <strong>Prerquisite:</strong> <a href="../transactions/index.html">Transaction</a>. 
+            <strong>Prerequisite:</strong> <a href="../transactions/index.html">Transaction</a>. 
                 Locks are the mechanism the database engine uses to enforce everything a 
-                transaction promises - this page explains how that promise is actually kept.
+                transaction promises &mdash; this page explains how that promise is actually kept.
         </div>
 
         <!-- Tab switcher -->
@@ -70,13 +70,12 @@
                 <p>
                     When a transaction reads or writes a row, it takes out a "claim
                     ticket" on that row. Most ticket types let other transactions take 
-                    a number and queue behind it - they'll get their turn once the 
-                    ticket is released at COMMIT or ROLLBACK. But some ticket types 
-                    mean nobody else can even queue: they have to wait until the 
-                    ticket holder is completely done. This is the difference between
-                    a <strong>shared lock</strong> (read ticket - others can queue for 
-                    reads too) and an <strong>exclusive lock</strong> (write ticket -
-                    everyone else waits).
+                    a number and queue behind it &mdash; they'll get their turn once the 
+                    ticket is released at <strong><code>COMMIT</code></strong> or <strong><code>ROLLBACK</code></strong>. 
+                    But some ticket types mean nobody else can even queue: they have to wait until the 
+                    ticket holder is completely done. This is the difference between a <strong>shared lock</strong> 
+                    (read ticket &mdash; others can queue for reads too) and an <strong>exclusive lock</strong> 
+                    (write ticket &mdash; everyone else waits).
                 </p>
             </div>
 
@@ -87,44 +86,44 @@
                 Reference tab.
             </p>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>1. Lost updates &rarr; exclusive locks (X)</h4>
                 <p>
                     Two transactions both read a value, both calculate a new value 
-                    based on it and both write back - the second write silently 
+                    based on it and both write back &mdash; the second write silently 
                     overwrites the first and one update is lost. An exclusive lock 
                     on the row being modified prevents a second writer from touching 
                     it until the first is finished.
                 </p>
             </div>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>2. Dirty reads &rarr; shared locks (S) blocking on X</h4>
                 <p>
-                    Two transactions a row that another transaction has changed 
+                    Two transactions read a row that another transaction has changed 
                     but not yet committed. If that change is later rolled back, the 
                     first transaction acted on data that never really existed. A 
                     shared lock request has to wait if an exclusive lock is already 
-                    held on that row - so readers don't see half-finished writes.
+                    held on that row &mdash; so readers don't see half-finished writes.
                 </p>
             </div>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>3. Deadlocks &rarr; the deadlock detector</h4>
                 <p>
                     Two transactions each hold a lock the other one needs and each 
                     is waiting for the other to release it. Neither ever will. SQL 
                     Server periodically checks for these cycles and picks one 
-                    transaction as the <strong>deadlock victim</strong> - it gets
+                    transaction as the <strong>deadlock victim</strong> &mdash; it gets
                     rolled back automatically with error 1205, freeing its locks so 
                     the other transaction can continue.
                 </p>
             </div>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>4. Lock escalation &rarr; granularity (row/ page/ table)</h4>
                 <p>
-                    Locks aren't free to track - each one is a small amount of memory.
+                    Locks aren't free to track &mdash; each one is a small amount of memory.
                     If a single statement is about to acquire a very large number of 
                     row-level locks, SQL Sever escalates to a smaller number of 
                     coarser locks (page or table level) to keep overhead down. The 
@@ -139,19 +138,18 @@
                 <code>inventory</code> table, keyed by <code>PartID</code>. Two 
                 assembly stations each run a work order that consumes two different 
                 parts. Station A's work order needs Part 501 first, then Part 620.
-                Station B's work order needs Part 620 first, then Part 501 - the 
+                Station B's work order needs Part 620 first, then Part 501 &mdash; the 
                 same two parts, in the opposite order. Both stations start their 
                 Transactions at almost the same moment.
             </div>
 
             <p>
-                Each station's first <code>UPDATE</code> succeeds immediately and 
-                takes an exclusive lock on that part's row. But when each station 
-                tries to update its <em>second</em> part, that row is already
-                exclusively locked by the other station - and neither will release 
-                its first lock until its transaction commits. This is exactly the  
-                deadlock cycle from problem 3. Walk through it step by step in the 
-                Interactive tab.
+                Each station's first <code>UPDATE</code> succeeds immediately and takes
+                an exclusive lock on that part's row. But when each station tries to 
+                update its <em>second</em> part, that row is already exclusively locked 
+                by the other station &mdash; and neither will release its first lock until
+                its transaction commits. This is exactly the deadlock cycle from problem 3. 
+                Walk through it step by step in the Interactive tab.
             </p>
 
             <div class="deadlock-diagram">
@@ -173,33 +171,21 @@
         <!-- ========================================== -->
         <div class="tab-panel" id="panel-interactive" role="tabpanel" aria-labelledby="tab-interactive">
 
-            <p>
+            <p class="tab-intro">
                 Step through the work-order deadlock from the scenario above.
                 Watch which locks each station holds and what happens when SQL 
                 Server's deadlock detector steps in.
             </p>
 
-            <div class="step-controls" role="group" aria-label="Step navigation">
-                <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&larr; Back</button>
-                <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &rarr;</button>
-            </div>
-
-            <div class="step-counter" id="step-counter" aria-live="polite">Step 1 of 6</div>
-            
-            <div class="timeline">
-                <div class="=tl-col">
-                    <h5 class="txn-a">Station A</h5>
-                    <div id="col-a"></div>
+            <div class="interactive-block">
+                <div class="step-controls" role="group" aria-label="Step navigation">
+                    <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&larr; Back</button>
+                    <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &rarr;</button>
                 </div>
-                <div class="=tl-col">
-                    <h5 class="txn-b">Station B</h5>
-                    <div id="col-b"></div>
-                </div>
+                <div class="step-counter" id="step-counter" aria-live="polite">Step 1 of 6</div>
+                <div class="lock-grid" id="lock-diagram"></div>
+                <div class="step-narrative" id="step-narrative" aria-live="polite"></div>
             </div>
-
-            <div class="deadlock-diagram" id="lock-diagram"></div>
-
-            <div class="step-narrative" id="step-narrative" aria-live="polite"></div>
 
         </div>
 
@@ -224,7 +210,7 @@
                 <tr>
                     <td>Update</td><td><code>U</code></td>
                     <td>Rows a statement might update, before it commits to it</td>
-                    <td>Other U and X locks (but not S) - avoids a common 
+                    <td>Other U and X locks (but not S) &mdash; avoids a common 
                         deadlock pattern between two readers that both intend to write</td>
                 </tr>
 
@@ -251,7 +237,7 @@
                 </tr>
                 <tr>
                     <td>Table</td><td>The entire table</td>
-                    <td>Coarsest - blocks all writers (and sometimes readers)
+                    <td>Coarsest &mdash; blocks all writers (and sometimes readers)
                         to the table until released</td>
                 </tr>
             </table>
@@ -259,21 +245,21 @@
             <div class="notice">
                 <strong>Lock escalation:</strong> SQL Server can automatically
                 escalate row or page locks held by a single statement to a 
-                table lock once a treshold (around 5,000 locks) is reached.
-                This is automatic and not directly configurable per query - it's 
-                a reason a single large batch <code>UPDATE</code> or 
-                <code>DELETE</code> can unexpectedly block unrelated queries on 
+                table lock once a threshold (around 5,000 locks) is reached.
+                This is automatic and not directly configurable per query &mdash; it's 
+                a reason a single large batch <strong>UPDATE</strong> or 
+                <strong>DELETE</strong> can unexpectedly block unrelated queries on 
                 the same table, even ones touching completely different rows.
             </div>
 
-            <hr3>Seeing locks in SSMS</hr3>
+            <h3>Seeing locks in SSMS</h3>
             <div class="ref-card">
                 <h4>Current locks</h4>
                 <code>SELECT * FROM sys.dm_tran_locks;</code>
                 <p>
                     Lists every lock currently held or being waited on, including 
-                    the resource type (<code>RID</code>, <code>PAGE</code>,
-                    <code>OBJECT</code>), the lock mode and the session that holds it. 
+                    the resource type (<strong>RID</strong>, <strong>PAGE</strong>,
+                    <strong>OBJECT</strong>), the lock mode and the session that holds it. 
                     Useful for confirming what a blocked query is actually waiting 
                     behind.
                 </p>
@@ -281,14 +267,14 @@
 
             <div class="ref-card">
                 <h4>Who's blocking whom</h4>
-                <code>SELECT session_id, blocking_session_id, wait_type, wait_time
-                FROM sys.dm_exec_requests WHERE blocking_session_id &lt;&gt; 0;</code>
-                </code>
+                <code>SELECT session_id, blocking_session_id, wait_type, wait_time</code>
+                <code>FROM sys.dm_exec_requests</code>
+                <code>WHERE blocking_session_id &lt;&gt; 0;</code>
                 <p>
                     Any row here means one session is waiting on a lock held by 
-                    another. A non-zero <code>blocking_session_id</code> is the 
+                    another. A non-zero <strong>blocking_session_id</strong> is the 
                     fastest way to confirm "is something blocked right now" before 
-                    digging into <code>sys.dm_tran_locks</code> for detail.
+                    digging into <strong>sys.dm_tran_locks</strong> for detail.
                 </p>
             </div>
 
@@ -299,13 +285,13 @@
                     resources with another process and has been chosen as the 
                     deadlock victim. Rerun transaction.</code>
                 <p>
-                    The victim's transaction is automatically rolled back - its 
+                    The victim's transaction is automatically rolled back &mdash; its 
                     locks released so the other transaction can proceed. The 
                     error message itself even tells you what to do: catch it and 
                     retry. See the 
                     <a href="../concurrency-conflicts/index.html">Concurrency 
                         Conflicts</a> page for the retry pattern using 
-                        <code>XACT_STATE()</code>. 
+                        <strong>XACT_STATE()</strong> 
                 </p>
             </div>
 
@@ -315,7 +301,7 @@
                 <tr>
                     <td>Blocking</td>
                     <td>A transaction waiting for a lock by another. Normal 
-                        and expected - resolves once the holder commits or rolls back.</td>
+                        and expected &mdash; resolves once the holder commits or rolls back.</td>
                 </tr>
                 <tr>
                     <td>Deadlock</td>
@@ -329,7 +315,7 @@
                 </tr>
                 <tr>
                     <td>Granularity</td>
-                    <td>The size is the resource a lock covers - row, page or table.</td>
+                    <td>The size of the resource a lock covers &mdash; row, page or table.</td>
                 </tr>
             </table>
         </div>
@@ -345,7 +331,7 @@
 
 <script>
     // Mark the active topic link based on the current URL
-    const links=document.querySelectorAll('topic-link');
+    const links=document.querySelectorAll('.topic-link');
     links.forEach(link => {
         if (link.href === window.location.href) {
             link.classList.add('active');
@@ -365,39 +351,39 @@
             narrative: "Both stations start a transaction at roughly the same time. Neither holds any locks yet."
         },
         {
-            a: { sql: "UPDATE Inventory SET Qty -= l\nWHERE PartID = 501;", state: "active-a" },
+            a: { sql: "UPDATE Inventory SET Qty -= 1\nWHERE PartID = 501;", state: "active-a" },
             b: { sql: "BEGIN TRANSACTION", state: "active-b" },
             holdsA: "X-lock: Part 501",
             holdsB: "X-lock: none yet",
-            narrative: "Station A updates Part 501 and immediately acquires an exclusive (X) lock on that row. The statement completes - the block is held until COMMIT or ROLLBACK."
+            narrative: "Station A updates Part 501 and immediately acquires an exclusive (X) lock on that row. The statement completes &mdash; the block is held until COMMIT or ROLLBACK."
         },
         {
-            a: { sql: "(holding lock on Part 501)", state: "Done" },
-            b: { sql: "UPDATE Inventory SET Qty -= l\nWHERE PartID = 620;", state: "active-b" },
+            a: { sql: "(holding lock on Part 501)", state: "done" },
+            b: { sql: "UPDATE Inventory SET Qty -= 1\nWHERE PartID = 620;", state: "active-b" },
             holdsA: "X-lock: Part 501",
             holdsB: "X-lock: Part 620",
-            narrative: "Station B updates Part 620 and acquires its own X-lock on that row. So far, no conflict - the stations are touching different rows."
+            narrative: "Station B updates Part 620 and acquires its own X-lock on that row. So far, no conflict &mdash; the stations are touching different rows."
         },
         {
-            a: { sql: "UPDATE Inventory SET Qty -= l\nWHERE PartID = 620;", state: "blocked" },
+            a: { sql: "UPDATE Inventory SET Qty -= 1\nWHERE PartID = 620;", state: "blocked" },
             b: { sql: "(holding lock on Part 620)", state: "done" },
             holdsA: "X-lock: Part 501 | waiting for: Part 620",
             holdsB: "X-lock: Part 620",
-            narrative: "Station A now tries to update Part 620 for its second component - but Station B holds an X-lock on that row. Station A blocks and waits."
+            narrative: "Station A now tries to update Part 620 for its second component &mdash; but Station B holds an X-lock on that row. Station A blocks and waits."
         },
         {
-            a: { sql: "UPDATE Inventory Set Qty -= l\nWHERE PartID = 620;", state: "blocked" },
-            b: { sql: "UPDATE Inventory SET Qty -= l\nWHERE PartID = 501;", state: "victim" },
+            a: { sql: "UPDATE Inventory Set Qty -= 1\nWHERE PartID = 620;", state: "blocked" },
+            b: { sql: "UPDATE Inventory SET Qty -= 1\nWHERE PartID = 501;", state: "victim" },
             holdsA: "X-lock: Part 501 | waiting for: Part 620",
             holdsB: "X-lock: Part 620 | waiting for: Part 501",
-            narrative: "Station B now tries to update Part 501 - but Station A holds an X-lock on that row. Each station is waiting on the other: a deadlock cycle. SQL Server's deadlock detector picks one transaction as the victim - here, Station B."
+            narrative: "Station B now tries to update Part 501 &mdash; but Station A holds an X-lock on that row. Each station is waiting on the other: a deadlock cycle. SQL Server's deadlock detector picks one transaction as the victim &mdash; here, Station B."
         },
         {
-            a: { sql: "UPDATE Inventory Set Qty -= l\nWHERE PartID = 620;\nCOMMIT;", state: "resolved" },
+            a: { sql: "UPDATE Inventory Set Qty -= 1\nWHERE PartID = 620;\nCOMMIT;", state: "resolved" },
             b: { sql: "-- Error 1205: deadlock victim\n -- transaction rolled back", state: "victim" },
             holdsA: "X-lock: Part 501, Part 620 (committing)",
             holdsB: "(locks released - rolled back)",
-            narrative: "Station B's transaction is rolled back automatically, releasing its lock on Part 620. Staion A's blocked update can now proceed and commit normally. Station B's application should catch error 1205 and retry the whole transaction from the start."
+            narrative: "Station B's transaction is rolled back automatically, releasing its lock on Part 620. Station A's blocked update can now proceed and commit normally. Station B's application should catch error 1205 and retry the whole transaction from the start."
         },
     ];
 
@@ -405,21 +391,16 @@
 
     function renderStep() {
         const step = steps[current];
-
-        document.getElementById('col-a').innerHTML = 
-        `<div class="tl-step" ${step.a.state}">${step.a.sql.replace(/\n/g, '<br') || '&nbsp;'}</div>`;
-        document.getElementById('col-b').innerHTML = 
-        `<div class="tl-step" ${step.b.state}">${step.b.sql.replace(/\n/g, '<br') || '&nbsp;'}</div>`;
-    
+   
         document.getElementById('lock-diagram').innerHTML = `
-            <div class="dl-box${step.a.state === 'victim' || step.a.state === 'blocked' ? '' : ''}">
-                <strong>Station A</strong>
-                <span>${step.holdsA}</span>
+            <div class="tl-step-code ${step.a.state}" style="grid-column:1;grid-row:1;">${step.a.sql.replace(/\n/g, '<br>' ) || '&nbsp;'}</div>
+            <div class="dl-arrow" style="grid-column:2;grid-row:1 / 3;">${current >= 3 && current <= 4 ? '&#8644;' : '&rarr;'}</div>
+            <div class="tl-step-code ${step.b.state}" style="grid-column:3;grid-row:1;">${step.b.sql.replace(/\n/g, '<br>' ) || '&nbsp;'}</div>
+            <div class="dl-box${step.a.state === 'victim' ? ' dl-victim' : ''}" style="grid-column:1;grid-row:2;">
+                <strong>Station A</strong><span>${step.holdsA}</span>
             </div>
-            <div class="dl-arrow">&rarr;</div>
-            <div class="dl-box${step.b.state === 'victim' ? 'dl-victim' : ''}">
-                <strong>Station B</strong>
-                <span>${step.holdsB}</span>
+            <div class="dl-box${step.b.state === 'victim' ? ' dl-victim' : ''}" style="grid-column:3;grid-row:2;">
+                <strong>Station B</strong><span>${step.holdsB}</span>
             </div>
         `;
 
@@ -427,7 +408,7 @@
         document.getElementById('step-counter').textContent = `Step ${current + 1} of ${steps.length}`;
 
         document.getElementById('btn-prev').disabled = current === 0;
-        document.getElementById('bnt-next').disabled = current === steps.length - 1;
+        document.getElementById('btn-next').disabled = current === steps.length - 1;
     }
 
     function changeStep (delta) {

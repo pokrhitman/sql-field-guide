@@ -44,10 +44,10 @@
         <h2>Isolation Levels</h2>
 
         <div class="prereq">
-            <strong>Before this topic:</strong> you should be comfortable writing
-            basic SELECT queries and understand what a transaction is - that a
-            BEGIN / COMMIT block is a unit of work that either fully succeeds or
-            fully rolls back.
+            <strong>Before this topic:</strong> you should be comfortable writing basic
+            <strong><code>SELECT</code></strong> queries and understand what a transaction
+            is &mdash; that a <strong><code>BEGIN / COMMIT</code></strong> block is a unit 
+            of work that either fully succeeds or fully rolls back.
         </div>
 
         <!-- Tab switcher -->
@@ -69,35 +69,35 @@
                 others running at the same time.
             </p>
             <p>
-                The higher the isolation, the safer the data - but the more other
+                The higher the isolation, the safer the data &mdash; but the more other
                 transactions have to wait. The lower the isolation, the faster 
-                everything runs - but the more risk of reading inaccurate data.
+                everything runs &mdash; but the more risk of reading inaccurate data.
             </p>
 
             <h3>The four problems isolation levels protect against</h3>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>Dirty read</h4>
                 <p>You read data that another transaction changed but has not committed
-                    yet. If tha transaction rolls back, you read something that never
+                    yet. If that transaction rolls back, you read something that never
                     really existed.</p>
             </div>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>Non-repeatable read</h4>
                 <p>You read a row, then read it again in the same transaction and get
-                    a different value - because someone else changed and committed it
+                    a different value &mdash; because someone else changed and committed it
                     in between your two reads.</p>
             </div>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>Phantom read</h4>
-                <p>You rund a query like SELECT ... WHERE salary > 50000 and get 12 rows.
-                    Later in the same transaction you run it again and get 13 rows
-                    -  a new row appeared because another transaction inserted.</p>
+                <p>You run a query like <strong><code>SELECT ... WHERE salary > 50000</code></strong>
+                    and get 12 rows. Later in the same transaction you run it again and get 13 rows
+                    &mdash; a new row appeared because another transaction inserted.</p>
             </div>
 
-            <div class="concept-block">
+            <div class="keyword-card">
                 <h4>Lost update</h4>
                 <p>Two transactions both read the same value, calculate a new value
                     based on it and both write back. The second write silently overwrites
@@ -108,7 +108,7 @@
             <p>
                 Transaction A deducts $200 from a bank account but has not committed.
                 Transaction B reads the balance and sees the reduced amount. Transaction
-                A then rolls back - the deduction never happened. But Transaction B 
+                A then rolls back &mdash; the deduction never happened. But Transaction B 
                 already made a decision based on a balance that was never real.
                 That is a dirty read.
             </p>
@@ -215,7 +215,7 @@
             { label: 'Phantom read',            safe: true },
             { label: 'Lost update',             safe: true },
         ],
-        scenario: 'A bank runs its overnight batch: it reads every account, values every portfolio positionb and produces end-of-day figures. No new transfers or trades can be inserted mid-calculation. The output must be a perfect, stable snapshot.',
+        scenario: 'A bank runs its overnight batch: it reads every account, values every portfolio position and produces end-of-day figures. No new transfers or trades can be inserted mid-calculation. The output must be a perfect, stable snapshot.',
         usedBy: ['Banking end-of-day batch', 'Payroll runs', 'Regulatory reporting'],
         },
         {
@@ -274,7 +274,7 @@
 
         document.getElementById('detail-card').innerHTML = 
         '<h4>' + lv.name + '</h4>' +
-        '<code>' + lv.sql + '</code>' +
+        '<div class="tl-step-code single-line">' + lv.sql + '</div>' +
         '<p>' + lv.desc + '</p>' +
         '<div style="margin:10px 0">' + pills + '</div>' +
         '<div class="scenario-box">' + lv.scenario + '</div>' +
@@ -298,7 +298,7 @@
             card.className = 'ref-card';
             card.innerHTML = 
                 '<h4>' + lv.name + '</h4>' +
-                '<code>' + lv.sql + '</code>' +
+                '<div class="tl-step-code single-line">' + lv.sql + '</div>' +
                 '<div style="margin-bottom:8px">' + pills + '</div>' +
                 '<div>' + tags + '</div>';
             container.appendChild(card);        

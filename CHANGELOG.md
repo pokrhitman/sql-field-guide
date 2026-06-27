@@ -5,6 +5,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## [Session 12] — 2025-06-27
+
+### Changed
+- Locks — Explainer: swapped four problem cards from `.concept-block` to `.keyword-card` to resolve indigo overload
+- Locks — Interactive: replaced timeline layout with CSS grid (`lock-grid`); SQL columns now use `tl-step-code` dark navy style;
+  interactive block centred with `interactive-block` wrapper; intro paragraph uses `.tab-intro` class
+- Locks — Reference: inline `<code>` term references replaced with plain text to prevent dark block treatment
+- Isolation Levels — Interactive: SQL line uses `tl-step-code single-line` for consistent dark navy code style
+- Isolation Levels — Reference: same `tl-step-code single-line` treatment applied via `buildReference()`
+- main.css: added `.lock-grid` component and child rules; added `.interactive-block` wrapper rule; added `.tab-intro` class; 
+  added `.tl-step-code.single-line` modifier; scoped `height: 72px` to `.lock-grid .tl-step-code` only; 
+  added `margin-bottom` to `.scenario-box`
+
+### Fixed
+- Locks — multiple typos corrected across Explainer and data array
+- Locks — `<hr3>` corrected to `<h3>`; `id="bnt-next"` corrected to `id="btn-next"`; `dl-victim` class conditional fixed;
+  `state: "Done"` corrected to `state: "done"`
+- Isolation Levels — typos corrected in data array and Explainer HTML
+
+
 ## 2026-06-21 — Session 10 (Part B — ACID Properties & Transactions)
 
 ### Changed
