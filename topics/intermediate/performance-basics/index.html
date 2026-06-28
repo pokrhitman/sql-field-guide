@@ -179,11 +179,11 @@
 
              <div class="prereq">
                 <strong>Before this topic: </strong> you should understand 
-                what transactions are (BEGIN / COMMIT blocks), how locks 
+                what transactions are <strong>(<code>BEGIN/COMMIT</code>)</strong> blocks, how locks 
                 work (shared vs. exclusive, granularity) and what isolation 
                 levels control. This topic shows how all three interact 
-                to determine how fast &mdash; or how slow &mdash; your 
-                queries rund under concurrent load.
+                to determine how fast (or how slow) your 
+                queries run under concurrent load.
              </div>
 
              <!-- Tab switcher -->
@@ -222,44 +222,38 @@
                     <p>
                         A worker with a precise shelf address goes straight 
                         there: one aisle, one shelf, done. That is an 
-                        <span class="kterm">index seek</span> &mdash; SQL 
-                        Server jumps directly to the rows that match your 
-                        WHERE clause. A worker without an address walks every 
-                        single aisle checking every shelf: that is an 
-                        <span class="kterm">index scan</span> (or table scan).
-                        Scans read far more pages, take longer and hold any 
-                        locks they acquire across every page they touch.
+                        <span class="kterm">index seek</span> &mdash; SQL Server jumps directly
+                        to the rows that match your <strong><code>WHERE</code></strong> clause. 
+                        A worker without an address walks every single aisle checking every shelf:
+                        that is an <span class="kterm">index scan</span> (or table scan).
+                        Scans read far more pages, take longer and hold any locks they acquire 
+                        across every page they touch.
                     </p>
                 </div>
 
                 <div class="concept-block">
                     <h4>2. How long it holds its claim &mdash; transaction scope</h4>
                     <p>
-                        Locks are held for the duration of the transaction.
-                        A worker who claims a shelf as soon as they arrive 
-                        and doesn't release it until they've finished writing
-                        their paperwork, eaten lunch and made a phone call
-                        is blocking every other worker who needs that shelf.
-                        <span class="kterm">Transaction scope</span> &mdash;
-                        what you put inside your BEGIN / COMMIT block &mdash;
-                        directly controls how long your locks are held.
-                        Wide scope (validation logic, calculations, logging
-                        all inside the transaction) means long lock hold times.
-                        Narrow scope (only the essential write inside the 
-                        transaction) means short lock hold times.
+                        Locks are held for the duration of the transaction. A worker who claims a shelf
+                        as soon as they arrive and doesn't release it until they've finished writing
+                        their paperwork, eaten lunch and made a phone call is blocking every other worker
+                        who needs that shelf. <span class="kterm">Transaction scope</span> &mdash;
+                        what you put inside your <strong><code>BEGIN/COMMIT</code></strong> block &mdash;
+                        directly controls how long your locks are held. Wide scope (validation logic, 
+                        calculations, logging all inside the transaction) means long lock hold times.
+                        Narrow scope (only the essential write inside the transaction) means 
+                        short lock hold times.
                     </p>
                 </div>
 
                 <div class="concept-block">
                     <h4>3. What level of caution it operates under &mdash; isolation level</h4>
                     <p>
-                        A worker operating under strict rules takes a formal 
-                        claim on every shelf they glance at and holds it until
-                        their entire job is done (Serializable). A worker under 
-                        relaxed rules glances at a shelf, notes what they see
-                        and releases the claim immediately (Read Committed).
-                        Higher isolation levels acquire more locks, hold them
-                        longer and therefore block more concurrent work.
+                        A worker operating under strict rules takes a formal claim on every shelf 
+                        they glance at and holds it until their entire job is done (Serializable).
+                        A worker under relaxed rules glances at a shelf, notes what they see
+                        and releases the claim immediately (Read Committed). Higher isolation levels
+                        acquire more locks, hold them longer and therefore block more concurrent work.
                         The trade-off is data consistency vs. throughput.
                     </p>
                 </div>
@@ -280,13 +274,13 @@
                             <tr>
                                 <td><strong>Slow reads</strong></td>
                                 <td>Product pages time out under peak load</td>
-                                <td>Table scan instead on the lookup column</td>
+                                <td>Table scan instead of an index on the lookup column</td>
                                 <td>Add a covering index on the lookup column</td>
                             </tr>
                             <tr>
                                 <td><strong>Read/write contention</strong></td>
                                 <td>Inventory check blocks order insert</td>
-                                <td>Read holding shared locks unter Repeatable Read or Serializable</td>
+                                <td>Read holding shared locks under Repeatable Read or Serializable</td>
                                 <td>Lower isolation level; consider READ_COMMITTED_SNAPSHOT</td>
                             </tr>
                             <tr>
@@ -316,16 +310,13 @@
                 <div class="concept-block">
                     <h4>SET STATISTICS TIME ON / SET STATISTICS IO ON</h4>
                     <p>
-                        Run these before your query in SSMS. The output in 
-                        the Messages tab tells you elapsed time (wall clock),
-                        CPU time and &mdash; most usefully &mdash;
-                        <span class="kterm">logical reads</span>: how many 
-                        8KB data pages SQL Server read from the buffer cache 
-                        to satisfy the query. A table scan on a large table 
-                        can produc thousands of logical reads; an index seek 
-                        on the same query might produce fewer than ten.
-                        Logical reads are the most reliable indicator of query 
-                        efficiency because they are not affected by server load 
+                        Run these before your query in SSMS. The output in the Messages tab tells 
+                        you elapsed time (wall clock), CPU time and &mdash; most usefully &mdash;
+                        <span class="kterm">logical reads</span>: how many 8KB data pages SQL Server
+                        read from the buffer cache to satisfy the query. A table scan on a large table 
+                        can produc thousands of logical reads; an index seek on the same query 
+                        might produce fewer than ten. Logical reads are the most reliable indicator
+                        of query efficiency because they are not affected by server load 
                         or caching effects the way elapsed time is.
                     </p>
                 </div>
@@ -333,42 +324,33 @@
                 <div class="concept-block">
                     <h4>Execution plans (Ctrl+M in SSMS)</h4>
                     <p>
-                        The graphical execution plan shows you exactly which 
-                        operations SQL Server chose to execute your query.
-                        Look for <span class="kterm">Index Seek</span>
-                        (efficient &mdash; going straight to the right rows)
-                        vs. <span class="kterm">Table Scan</span> or 
-                        <span class="kterm"> </span> Scan</span> (reading all 
-                        rows). The thickness of the arrows between operations 
-                        represents the estimated number of rows flowing 
-                        through &mdash; a very thick arrow into an early 
-                        Filter operation is often a sign that filtering
-                        happening too late.
+                        The graphical execution plan shows you exactly which operations SQL Server 
+                        chose to execute your query. Look for <span class="kterm">Index Seek</span>
+                        (efficient &mdash; going straight to the right rows) vs. <span class="kterm">Table Scan</span>
+                        or <span class="kterm"> </span> Scan</span> (reading all rows). The thickness 
+                        of the arrows between operations represents the estimated number of rows flowing 
+                        through &mdash; a very thick arrow into an early Filter operation is often a sign
+                        that filtering happening too late.
                     </p>
                 </div>
 
                 <div class="concept-block">
                     <h4>sys.dm_exec_requests</h4>
                     <p>
-                        When the database feels slow right now, this dynamic 
-                        management view shows all currently running requests. 
-                        The <code>blocking_session_id</code> column is the 
-                        one to check first: a non-zero value means that 
-                        session is waiting for a lock held by another session. 
-                        The <code>wait_type</code> column tells you what kind 
-                        of resource it is waiting for. See the Reference tab 
-                        for the full query.
+                        When the database feels slow right now, this dynamic management view shows all
+                        currently running requests. The <strong><code>blocking_session_id</code></strong>
+                        column is the one to check first: a non-zero value means that session is waiting
+                        for a lock held by another session. The <strong><code>wait_type</code></strong> column tells you
+                        what kind of resource it is waiting for. See the Reference tab for the full query.
                     </p>
                 </div>
 
                 <div class="perf-tip">
-                    <strong>The practical order of attack:</strong> add the 
-                    right index first (it often eliminates contention by 
-                    reducing scan scope and lock footprint), then narrow 
-                    transaction scope (reduces hold duration), the revisit 
-                    isolation level only if contention persists. Changing
-                    isolation level without fixing indexes first is treating 
-                    the symptom, not the cause.
+                    <strong>The practical order of attack:</strong> add the right index first 
+                    (it often eliminates contention by reducing scan scope and lock footprint),
+                    then narrow transaction scope (reduces hold duration), then revisit isolation level
+                    only if contention persists. Changing isolation level without fixing indexes first
+                    is treating the symptom, not the cause.
                 </div>
 
             </div>
@@ -379,12 +361,10 @@
             <div class="tab-panel" id="panel-interactive"  role="tabpanel" aria-labelledby="tab-interactive">
 
                 <p>
-                    The simulator below models an e-commerce platform during
-                    a flash sale. Thousands of customers are simultaneously 
-                    checking product availability (reads) while orders are 
-                    being placed and stock counts decremented (writes). 
-                    Adjust the three variables and see how they intersect to 
-                    determine query cost and blocking risk. 
+                    The simulator below models an e-commerce platform during a flash sale. Thousands 
+                    of customers are simultaneously checking product availability (reads) while orders are 
+                    being placed and stock counts decremented (writes). Adjust the three variables
+                    and see how they intersect to determine query cost and blocking risk. 
                 </p>
 
                 <!-- Controls -->
@@ -433,7 +413,7 @@
                         </div>
                     </div>
 
-                    <div class="sime-explanation" id="out-explanation"></div>
+                    <div class="sim-explanation" id="out-explanation"></div>
 
                     <div class="sim-code-header">T-SQL &mdash; Current Configuration</div>
                     <div class="code-block" id="out-code" style="margin: 12px 18px 18px;"></div>
@@ -455,7 +435,7 @@
 <span class="c-keyword">SET</span> STATISTICS IO <span class="c-keyword">ON</span>;
 
 <span class="c-keyword">SELECT</span> ProductId, StockQty
-<span class="c-keyword">FROM </span> Products
+<span class="c-keyword">FROM</span> Products
 <span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;
 
 <span class="c-keyword">SET</span> STATISTICS TIME <span class="c-keyword">OFF</span>;
@@ -463,7 +443,7 @@
                     <table class="data-table" style="margin-top:12px;">
                         <thead>
                             <tr>
-                                <th scope="col">Output field</th>
+                                <th scope="col" style="width: 140px;">Output field</th>
                                 <th scope="col">What it means</th>
                                 <th scope="col">What to look for</th>
                             </tr>
@@ -472,7 +452,7 @@
                             <tr>
                                 <td><code>logical reads</code></td>
                                 <td>Pages read from the buffer cache</td>
-                                <td>Most reliabel efficiency indicator &mdash; not skewed by load or caching</td>
+                                <td>Most reliable efficiency indicator &mdash; not skewed by load or caching</td>
                             </tr>
                             <tr>
                                 <td><code>physical reads</code></td>
@@ -535,19 +515,19 @@
                         <tr>
                             <td>Repeatable Read</td>
                             <td>End of transaction</td>
-                            <td><span class="pill pill-safe">Medium</span></td>
+                            <td><span class="pill pill-warn">Medium</span></td>
                             <td>Multi-step reads that must see stable data</td>
                         </tr>
                         <tr>
                             <td>Serializable</td>
                             <td>End of transaction (+ range locks)</td>
-                            <td><span class="pill pill-risk">High</spand></td>
+                            <td><span class="pill pill-risk">High</span></td>
                             <td>Batch jobs, regulatory reporting, critical totals</td>
                         </tr>
                         <tr>
                             <td>Snapshot</td>
                             <td>Not held (uses row versioning)</td>
-                            <td><span class="pill pill-safe">Low</spand></td>
+                            <td><span class="pill pill-safe">Low</span></td>
                             <td>High-concurrency reads; requires db-level config</td>
                         </tr>
                     </tbody>
@@ -555,8 +535,8 @@
 
                 <h3>Transaction scope &mdash; do and don't</h3>
 
-                <div class="ref-card">
-                    <table class="data-table">
+                <div class="ref-card" style="padding:0;">
+                    <table class="data-table" style="margin:0;">
                         <thead>
                             <tr>
                                 <th scope="col">Inside the transaction &mdash; keep short</th>
@@ -628,7 +608,7 @@
                         </tr>
                         <tr>
                             <td><strong>blocking_session_id</strong></td>
-                            <td>Column in <code>sys.dm_exec_requests</code>.A non-zero value means this session is waiting for a lock held by the identified session.</td>
+                            <td>Column in <code>sys.dm_exec_requests</code>. A non-zero value means this session is waiting for a lock held by the identified session.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -692,8 +672,8 @@
                 '<span class="c-comment">-- Inventory check: runs OUTSIDE the transaction</span>',
                 '<span class="c-comment">-- Index seek on ProductId: ~8 logical reads</span>',
                 '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-                '<span class="c-keyword">FROM</span>   Products',
-                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>;',
+                '<span class="c-keyword">FROM</span> Products',
+                '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
                 '',
                 '<span class="c-comment">-- Narrow scope: only the write is inside the transaction</span>',
                 '<span class="c-keyword">BEGIN</span> TRANSACTION;',
@@ -718,13 +698,13 @@
                 '<span class="c-comment">-- Wide scope: SELECT and INSERT both inside the transaction</span>',
                 '<span class="c-keyword">BEGIN</span> TRANSACTION;',
                 '',
-                '   <span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
-                '   <span class="c-keyword">SELECT</span> ProductId, StockQty',
-                '   <span class="c-keyword">FROM</span>   Products',
-                '   <span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>;',
+                '<span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
+                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+                '<span class="c-keyword">FROM</span> Products',
+                '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
                 '',
                 '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
-                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span<, <span class="c-number">1</span>, GETDATE());',
+                '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
                 '',
                 '<span class="c-keyword">COMMIT</span>;'
                 ]
@@ -740,11 +720,11 @@
         code: [
             '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL READ COMMITTED;',
             '',
-            '<span class="c-comment">-- Inventory check: rund OUTSIDE the transaction</span>',
+            '<span class="c-comment">-- Inventory check: run OUTSIDE the transaction</span>',
             '<span class="c-comment">-- No index on ProductId: full table scan, ~1,200 logical reads</span>',
             '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-            '<span class="c-keyword">FROM</span>   Products',
-            '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
             '',
             '<span class="c-comment">-- Narrow scope: only the write is inside the transaction</span>',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
@@ -769,10 +749,10 @@
             '<span class="c-comment">-- Wide scope: SELECT and INSERT both inside the transaction</span>',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
             '',
-                '<span class="c-comment">-- No index on ProductId: full table scan, ~1,200 logical reads</span>',
-                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-                '<span class="c-keyword">FROM</span>   Products',
-                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-comment">-- No index on ProductId: full table scan, ~1,200 logical reads</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
                 '',
             '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
             '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
@@ -802,7 +782,7 @@
                 '<span class="c-comment">-- Narrow scope: only the write is inside the transaction</span>',
                 '<span class="c-keyword">BEGIN</span> TRANSACTION;',
                 '',
-                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, Qty, OrderDate)',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
                 '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
                 '',
                 '<span class="c-keyword">COMMIT</span>;'
@@ -823,13 +803,13 @@
             '<span class="c-comment">-- S lock on Products row held for the entire transaction duration</span>',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
             '',
-            '   <span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
-            '   <span class="c-keyword">SELECT</span> ProductId, StockQty',
-            '   <span class="c-keyword">FROM</span>   Products',
-            '   <span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
             '',
             '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
-            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1</span>, GETDATE());',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
             '',
             '<span class="c-keyword">COMMIT</span>;'
             ]
@@ -849,12 +829,12 @@
             '<span class="c-comment">-- No index: full table scan, ~1,200 logical reads</span>',
             '<span class="c-comment">-- RR holds S locks on every scanned page until implicit txn ends</span>',
             '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-            '<span class="c-keyword">FROM</span>   Products',
-            '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
             '',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
             '',
-            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
             '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
             '',
             '<span class="c-keyword">COMMIT</span>;'
@@ -876,12 +856,12 @@
             '<span class="c-comment">-- Risk of lock escalation to table at this volume</span>',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
             '',
-                '<span class="c-comment">-- No index: full table scan</span>',
-                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-                '<span class="c-keyword">FROM</span>   Products',
-                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-comment">-- No index: full table scan</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
                 '',
-                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
                 '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
                 '',
             '<span class="c-keyword">COMMIT</span>;'
@@ -895,7 +875,7 @@
             lock: 'Medium',
             risk: 'medium',
             riskLabel: '&#128993; Medium',
-            explanation: '<strong>Serializable adds range locks even with an efficient seek.</strong> Serializable prevents phantom reads by placing range locks on the index range that your WHERE clause covers &mdash; not just the row that was found. This means no other session can INSERT a new row for product 1042 (or any ProductId in the locked range) while your lock is held. The index seek is still fast and the transcription scope is narrow, but range locks are held longer than Read Committed\'s shared locks and block a broader set of concurrent operations &mdash; including inserts of new products, not just updates to existing ones.',
+            explanation: '<strong>Serializable adds range locks even with an efficient seek.</strong> Serializable prevents phantom reads by placing range locks on the index range that your WHERE clause covers &mdash; not just the row that was found. This means no other session can INSERT a new row for product 1042 (or any ProductId in the locked range) while your lock is held. The index seek is still fast and the transaction scope is narrow, but range locks are held longer than Read Committed\'s shared locks and block a broader set of concurrent operations &mdash; including inserts of new products, not just updates to existing ones.',
             code: [
                 '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;',
                 '',
@@ -903,12 +883,12 @@
                 '<span class="c-comment">-- Serializable adds range locks on the ProductId index range</span>',
                 '<span class="c-comment">-- Index seek: ~8 logical reads, but range lock blocks INSERTs too</span>',
                 '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-                '<span class="c-keyword">FROM</span>   Products',
-                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>;',
+                '<span class="c-keyword">FROM</span> Products',
+                '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
                 '',
                 '<span class="c-keyword">BEGIN</span> TRANSACTION;',
                 '',
-                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, Qty, OrderDate)',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
                 '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
                 '',
                 '<span class="c-keyword">COMMIT</span>;'
@@ -929,13 +909,13 @@
             '<span class="c-comment">-- S lock on Products row held for the entire transaction duration</span>',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
             '',
-            '   <span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
-            '   <span class="c-keyword">SELECT</span> ProductId, StockQty',
-            '   <span class="c-keyword">FROM</span>   Products',
-            '   <span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-comment">-- Index seek on ProductId: ~ 8 logical reads</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
             '',
             '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
-            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1</span>, GETDATE());',
+            '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
             '',
             '<span class="c-keyword">COMMIT</span>;'
             ]
@@ -955,12 +935,12 @@
             '<span class="c-comment">-- Serializable range locks cover the entire scanned range</span>',
             '<span class="c-comment">-- Effectively locks the whole Products table against INSERTs</span>',
             '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-            '<span class="c-keyword">FROM</span>   Products',
-            '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
             '',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
             '',
-            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+            '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
             '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
             '',
             '<span class="c-keyword">COMMIT</span>;'
@@ -977,17 +957,17 @@
         code: [
             '<span class="c-keyword">SET</span> TRANSACTION ISOLATION LEVEL SERIALIZABLE;',
             '',
-            '<span class="c-comment">-- Worst case: Full scan + wide scope nuder Serializable</span>',
+            '<span class="c-comment">-- Worst case: Full scan + wide scope under Serializable</span>',
             '<span class="c-comment">-- Range locks on every scanned page held until COMMIT</span>',
             '<span class="c-comment">-- Effectively serializes all concurrent access to Products</span>',
             '<span class="c-keyword">BEGIN</span> TRANSACTION;',
             '',
-                '<span class="c-comment">-- No index: full table scan, ~1,200 logical reads</span>',
-                '<span class="c-keyword">SELECT</span> ProductId, StockQty',
-                '<span class="c-keyword">FROM</span>   Products',
-                '<span class="c-keyword">WHERE</span>  ProductId = <span class="c-number">1042</span>',
+            '<span class="c-comment">-- No index: full table scan, ~1,200 logical reads</span>',
+            '<span class="c-keyword">SELECT</span> ProductId, StockQty',
+            '<span class="c-keyword">FROM</span> Products',
+            '<span class="c-keyword">WHERE</span> ProductId = <span class="c-number">1042</span>;',
                 '',
-                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span>, Orders (CustomerId, ProductId, Qty, OrderDate)',
+                '   <span class="c-keyword">INSERT</span> <span class="c-keyword">INTO</span> Orders (CustomerId, ProductId, Qty, OrderDate)',
                 '   <span class="c-keyword">VALUES</span> (<span class="c-number">8801</span>, <span class="c-number">1042</span>, <span class="c-number">1</span>, GETDATE());',
                 '',
             '<span class="c-keyword">COMMIT</span>;'

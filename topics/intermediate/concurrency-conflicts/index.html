@@ -45,8 +45,8 @@
 
             <div class = "prereq">
                 <strong>Before this topic</strong> you should understand what a 
-                transaction is (BEGIN / COMMIT / ROLLBACK) and have a basic
-                familiarity with the isolation levels - specifically that 
+                transaction is (<strong><code>BEGIN / COMMIT / ROLLBACK</code></strong>) and have a basic
+                familiarity with the isolation levels &mdash; specifically that 
                 transactions hold locks on the data they read or modify.
                 <a href = "../isolation-levels/index.html" style="color:#5c6bc0;">Isolation Levels &#8594;</a>
             </div>
@@ -69,30 +69,30 @@
                     through: deadlocks, where the engine has to forcibly kill a
                     transaction, and commit failures under Snapshot isolation, where 
                     the engine detects a conflict too late to prevent it.
-                    Both requiry your application - not just your SQL settings - 
+                    Both require your application &mdash; not just your SQL settings - 
                     to respond correctly.
                 </p>
 
                 <h3>What is a deadlock?</h3>
                 <p>
-                    A deadlock happens when two transactions are each writing for 
+                    A deadlock happens when two transactions are each waiting for 
                     the other to release a lock and neither can continue. Each one 
                     holds something the other needs. Left alone, they would wait
                     forever.
                 </p>
 
                 <div class="deadlock-diagram">
-                    <div class="dl-box">
+                    <div class="dl-box" style="width:150px;">
                         <strong>Transaction A</strong>
                         <span>holds lock on<br /><strong>Table: Orders</strong></span>
                     </div>
                     <div class="dl-arrow">&#8594; wants &#8594;</div>
-                    <div class="dl-box dl-victim">
+                    <div class="dl-box dl-victim" style="width:150px;">
                         <strong>Transaction B ☠</strong>
-                        <span>holds lock on</span><br /><strong>Table: Customers</strong></span>
+                        <span>holds lock on<br /><strong>Table: Customers</strong></span>
                     </div>
                     <div class="dl-arrow">&#8594; wants &#8594;</div>
-                    <div class="dl-box" style="border-style:dashed;">
+                    <div class="dl-box" style="border-style:dashed; width:150px; height:87px; display: flex; flex-direction: column; justify-content: center;">
                         <strong>Transaction A</strong>
                         <span>(back to start)</span>
                     </div>
@@ -101,8 +101,8 @@
                 <p>
                     SQL Server's deadlock monitor (the <em>lock monitor thread</em>)
                     wakes up every five seconds to scan for these cycles. When it
-                    finds one, it picks a "victim" - usually the transaction that would
-                    cost less to roll back - and terminates it with error
+                    finds one, it picks a "victim" &mdash; usually the transaction that would
+                    cost less to roll back &mdash; and terminates it with error
                     <strong>1205</strong>. The victim's transaction is rolled back
                     automatically. The surviving transaction then gets its lock and 
                     continues.
@@ -111,69 +111,58 @@
                 <div class="concept-block">
                     <h4>How the victim is chosen</h4>
                     <p>
-                        SQL Server picks the transaction with the lowest
-                        <em>deadlock priority</em>. If both are equal (the default),
-                        it rolls back whichever transaction is cheaper to undo - 
-                        typically the one that has done less work so far.
-                        You can influence this with 
-                        <code>SET DEADLOCK_PRIORITY LOW | NORMAL | HIGH</code>,
+                        SQL Server picks the transaction with the lowest <em>deadlock priority</em>. 
+                        If both are equal (the default), it rolls back whichever transaction
+                        is cheaper to undo &mdash; typically the one that has done less work so far.
+                        You can influence this with <code>SET DEADLOCK_PRIORITY LOW | NORMAL | HIGH</code>,
                         which is useful when one transaction is much more expensive
                         to re-run than the other.
                     </p>
                 </div>
 
-                    <h3>Why deadlocks happen -  and how to reduce them</h3>
+                    <h3>Why deadlocks happen &mdash; and how to reduce them</h3>
                     <p>
-                        Deadlocks almost always come from transactions accessing the 
-                        same tables in different orders. if Transaction A always locks 
-                        Orders then Customers, and Transaction B always locks Customers
-                        then Orders, a deadlock is only a matter of timing. The fix is 
-                        consistent lock ordering: make both transactions access tables 
-                        in the same sequence.
+                        Deadlocks almost always come from transactions accessing the same tables
+                        in different orders. if Transaction A always locks <code>Orders</code> then <code>Customers</code>,
+                        and Transaction B always locks <code>Customers</code> then <code>Orders</code>,
+                        a deadlock is only a matter of timing. The fix is consistent lock ordering: 
+                        make both transactions access tables in the same sequence.
                     </p>
                     <p>
-                        Short transactions also help. The longer a transaction holds 
-                        locks, the larger the window in which another transaction can 
-                        collide with it. Keeping transactions focused - do the work, 
-                        commit quickly - reduces the opportunity for overlap.
+                        Short transactions also help. The longer a transaction holds locks, the larger the window
+                        in which another transaction can collide with it. Keeping transactions focused
+                        &mdash; do the work, commit quickly &mdash; reduces the opportunity for overlap.
                     </p>
 
                     <h3>What is a commit failure under Snapshot?</h3>
                     <p>
-                        Snapshot isolation avoids deadlocks by giving each transaction 
-                        its own frozen copy of the data (a "snapshot" taken at the 
-                        moment the transaction starts). Because readers never block 
-                        writers and writers never block readers, deadlocks largely
-                        disappear. But there is a trade-off: SQL Server cannot prevent 
-                        two transactions from both reading the same data and then both 
-                        trying to update it. Instead it detects the conflict at commit 
-                        time and throws error <strong>3960</strong>, rolling back the 
-                        second writer.
+                        Snapshot isolation avoids deadlocks by giving each transaction its own frozen copy
+                        of the data (a "snapshot" taken at the moment the transaction starts). Because readers
+                        never block writers and writers never block readers, deadlocks largely disappear. 
+                        But there is a trade-off: SQL Server cannot prevent two transactions from both reading
+                        the same data and then both trying to update it. Instead it detects the conflict at commit 
+                        time and throws <strong><code>error 3960</code></strong>, rolling back the second writer.
                     </p>
                     <p>
-                        This is called an <em>update conflict</em>. It is not a bug - 
-                        it is Snapshot doing its job. But your application must expect
-                        it and know what to do next.
+                        This is called an <em>update conflict</em>. It is not a bug &mdash; it is Snapshot doing its job. 
+                        But your application must expect it and know what to do next.
                     </p> 
 
                     <h3>Retry logic: the correct response to both errors</h3>
                     <p>
-                        Both error 1205 (deadlock victim) and error 3960 (Snapshot
-                        update conflict) mean: <em>your transaction was rolled back,
-                        try again</em>. The data is in a consistent state. The work 
-                        simply needs to be re-attempted
+                        Both <strong><code>error 1205</code></strong> (deadlock victim) and <strong><code>error 3960</code></strong> (Snapshot
+                        update conflict) mean: <em>your transaction was rolled back, try again</em>. The data is in a 
+                        consistent state. The work simply needs to be re-attempted
                     </p>
                     <p>
-                        The pattern is always the same: catch the specific error number,
-                        wait a short time, and retry - up to a maximum number of
-                        attempts. The wait before retrying is important: if two 
-                        transactions conflicted once at exactly the same moment,
-                        retrying immediately at the same moment will conflict again.
-                        A small random delay breaks the synchronisation.
+                        The pattern is always the same: catch the specific error number, wait a short time, and retry 
+                        &mdash; up to a maximum number of attempts. The wait before retrying is important: if two 
+                        transactions conflicted once at exactly the same moment, retrying immediately at the same moment
+                        will conflict again. A small random delay breaks the synchronisation.
                     </p>
                     <p>
-                        The Interactive tab walks through a deadlock step by step,
-                        and the Reference tab has the retry pattern as a code template. 
+                        The Interactive tab walks through a deadlock step by step, and the Reference tab has the retry
+                        pattern as a code template. 
                     </p>
 
             </div>
@@ -190,20 +179,20 @@
 
                 <div class="step-counter" id="step-counter" aria-live="polite">Step 1 of 7</div>
 
-                <div class="timeline">
+                <div class="timeline" style="justify-content: center;">
                     <div class="tl-col">
-                        <h5 class="txn-a">Transaction A - Order processor</h5>
+                        <h5 class="txn-a">Transaction A &mdash; Order processor</h5>
                         <div id="tl-a"></div>
                     </div>
                     <div class="tl-col">
-                        <h5 class="txn-b">Transaction B - Customer update</h5>
+                        <h5 class="txn-b">Transaction B &mdash; Customer update</h5>
                         <div id="tl-b"></div>
                     </div>
                 </div>
 
-                <div class="step-narrative" id="step-narrative" aria-live="polite"></div>
+                <div class="step-narrative" id="step-narrative" aria-live="polite" style="max-width:584px; margin-left:auto; margin-right:auto; min-height:90px;"></div>
 
-                <div class="step-controls" style="margin-top:16px;" role="group" aria-label="Step navigation">
+                <div class="step-controls" style="margin-top:25px;" role="group" aria-label="Step navigation">
                     <button class="step-btn secondary" id="btn-prev" onclick="changeStep(-1)" disabled>&#8592; Previous</button>
                     <button class="step-btn" id="btn-next" onclick="changeStep(1)">Next &#8594;</button>
                     <button class="step-btn secondary" onclick="resetSteps()">&#8635; Restart</button>
@@ -236,7 +225,7 @@
                         <tr>
                             <td><code>1205</code></td>
                             <td>Deadlock victim</td>
-                            <td>Two transactions waiting for each other's locks - SQL chose this one to roll back </td>
+                            <td>Two transactions waiting for each other's locks &mdash;- SQL chose this one to roll back </td>
                             <td>Automatically rolled back</td>
                         </tr>
                          <tr>
@@ -260,8 +249,8 @@
                 </div>
                 <div class="ref-card">
                     <h4>Deadlock priority</h4>
-                    <code>SET DEADLOCK_PRIORITY LOW | NORMAL | HIGH;</code>
-                    <p>Telss SQL Server which transaction to sacrifice first. Set LOW on transactions that are cheap to retry; set HIGH on expensive long-running ones.</p>
+                    <p><code class="code-inline">SET DEADLOCK_PRIORITY LOW | NORMAL | HIGH;</code></p>
+                    <p>Tells SQL Server which transaction to sacrifice first. Set LOW on transactions that are cheap to retry; set HIGH on expensive long-running ones.</p>
                 </div>
 
                 <!-- Retry pattern -->
@@ -269,7 +258,7 @@
                 <p style="font-size:13px;color: #666; margin-bottom:8px;">
                     Apply this wrapper around any transaction that might be chosen 
                     as a deadlock victim or hit a Snapshot update conflict.
-                    Errors 12ß5 and 3960 both mean "rolled back - safe to retry."
+                    Errors 1205 and 3960 both mean "rolled back &mdash; safe to retry."
                 </p>
 
 <div class="code-block"><span class="c-comment">--Retry wrapper for deadlock (1205) and Snapshot conflict (3960)
@@ -279,7 +268,7 @@
 <span class="c-keyword">DECLARE</span> @maxTries   <span class="c-number">INT</span> = <span class="c-number">3</span>;
 <span class="c-keyword">DECLARE</span> @success    <span class="c-number">INT</span> = <span class="c-number">0</span>;
 
-<span class="c-keyword">WHILE</span> @attempt &lt;= @maxTries  <span class="c-number">0</span> @success <span class="c-number">1</span>;
+<span class="c-keyword">WHILE</span> @attempt &lt;= @maxTries  <span class="c-keyword">AND</span> @success= <span class="c-number">0</span>
 <span class="c-keyword">BEGIN</span>
     <span class="c-keyword">BEGIN TRY</span>
         <span class="c-keyword">BEGIN TRANSACTION</span>;
@@ -320,7 +309,7 @@
                     <p>
                         After error 1205, SQL Server has already rolled back your
                         transaction automatically. Calling ROLLBACK on something that 
-                        no longer exists causes a second error. <code>XACT_STATE()</code>
+                        no longer exists causes a second error. <code class="code-inline">XACT_STATE()</code>
                         returns 0 if there is no active transaction, -1 if it is 
                         uncommittable (must be rolled back), or 1 if it is still valid.
                         Checking first makes the CATCH block safe in all three cases.
@@ -397,7 +386,7 @@
         { 
             a: ['done', 'done', 'active-a', '', '', '', ''],
             b: ['done', 'done', 'active-b', '', '', '', ''],
-            narrative: 'Both transactions are now holding their first lock. Transaction A holds Orders. Transaction B holds Customes. So far, no problem - they have not tried to touch each other\'s data yet.',
+            narrative: 'Both transactions are now holding their first lock. Transaction A holds Orders. Transaction B holds Customes. So far, no problem &mdash; they have not tried to touch each other\'s data yet.',
         },
         { 
             a: ['done', 'done', 'done', 'active-a', '', '', ''],
@@ -407,17 +396,17 @@
         { 
             a: ['done', 'done', 'done', 'done', 'blocked', '', ''],
             b: ['done', 'done', 'done', 'done', 'blocked', '', ''],
-            narrative: 'Both transactions are noch blocked, waiting for the other to release its lock. Neither can proceed. This is the deadlock: a circular wait with no way out. SQL Server\'s lock monitor thread (which wakes every 5 seconds) detects this cycle.',
+            narrative: 'Both transactions are now blocked, waiting for the other to release its lock. Neither can proceed. This is the deadlock: a circular wait with no way out. SQL Server\'s lock monitor thread (which wakes every 5 seconds) detects this cycle.',
         },
         { 
             a: ['done', 'done', 'done', 'done', 'blocked', 'victim', ''],
             b: ['done', 'done', 'done', 'done', 'blocked', 'resolved', ''],
-            narrative: 'SQL Server picks Transaction A as deadlock victim - it has done less work and is cheaper to roll back. Transaction A receives error 1205 and is terminated. Transaction B is released from its wait and can now acquire the lock on Orders.',
+            narrative: 'SQL Server picks Transaction A as deadlock victim &mdash; it has done less work and is cheaper to roll back. Transaction A receives error 1205 and is terminated. Transaction B is released from its wait and can now acquire the lock on Orders.',
         },
         { 
             a: ['done', 'done', 'done', 'done', 'done', 'done', 'victim'],
             b: ['done', 'done', 'done', 'done', 'done', 'done', 'resolved'],
-            narrative: 'Transaction A is fully rolled back - all its changes are undone, as if it never ran. Transaction B commits successfully. The data is consitent. Transaction A\'s application must not catch error 1205 and retry the entire transaction.',
+            narrative: 'Transaction A is fully rolled back &mdash; all its changes are undone, as if it never ran. Transaction B commits successfully. The data is consitent. Transaction A\'s application must now catch error 1205 and retry the entire transaction.',
         },
     ];
 
@@ -430,14 +419,14 @@
         colB.innerHTML = '';
         txnASteps.forEach((text, i) => {
             const div = document.createElement('div');
-            div.className = 'tl-step';
+            div.className = 'tl-step-code';
             div.id = 'a-' + i;
             div.textContent = text;
             colA.appendChild(div);
         });
         txnBSteps.forEach((text, i) => {
             const div = document.createElement('div');
-            div.className = 'tl-step';
+            div.className = 'tl-step-code';
             div.id = 'b-' + i;
             div.textContent = text;
             colB.appendChild(div);
@@ -450,14 +439,14 @@
         // Apply classes to each row
         step.a.forEach((cls, i) => {
             const el = document.getElementById('a-' + i);
-            el.className = 'tl-step' + (cls ? ' ' + cls : '');
+            el.className = 'tl-step-code' + (cls ? ' ' + cls : '');
         });
         step.b.forEach((cls, i) => {
             const el = document.getElementById('b-' + i);
-            el.className = 'tl-step' + (cls ? ' ' + cls : '');
+            el.className = 'tl-step-code' + (cls ? ' ' + cls : '');
         });
 
-        document.getElementById('step-narrative').textContent = step.narrative;
+        document.getElementById('step-narrative').innerHTML = step.narrative;
         document.getElementById('step-counter').textContent = 
             'Step ' + (index + 1) + ' of ' + steps.length;
 

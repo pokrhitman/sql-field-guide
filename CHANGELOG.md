@@ -5,6 +5,56 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## [Session 13] — 2026-06-28
+
+### Changed
+- Concurrency Conflicts — Interactive: timeline steps switched from `.tl-step`
+  to `.tl-step-code` (dark navy mono style), matching the Locks page convention;
+  timeline centred with `justify-content: center`; narrative box width capped at
+  584px (matching the combined column width) and given `min-height: 80px` to
+  prevent layout shift between steps; button group spacing increased to `margin-top: 20px`
+- Concurrency Conflicts — Reference: inline `SET DEADLOCK_PRIORITY` and
+  `XACT_STATE()` code snippets changed from dark block treatment to
+  `.code-inline` pill style; new `.ref-card code.code-inline` rule added to
+  `main.css` for light inline code within reference cards
+- Performance Basics — Reference: `<code>` pills in `.data-table` cells
+  given explicit `color: #1a1a2e` and slightly darker background `#e8e8e8`
+  for legibility against the light cell background; Output Field column
+  given fixed `width: 160px` to prevent `physical reads` wrapping
+- main.css: added `.tl-step-code.active-b`, `.tl-step-code.blocked`,
+  `.tl-step-code.victim`, `.tl-step-code.resolved` dark-background state
+  variants to match the existing `.tl-step-code.active-a` and `.tl-step-code.done`;
+  added `.ref-card code.code-inline` override rule; updated `.data-table code`
+  with explicit color and background values
+
+### Fixed
+- Concurrency Conflicts — Explainer: third deadlock diagram box given explicit
+  `width` and `height` with flex centering to match the height of the flanking boxes;
+  stray closing `</span>` tag corrected in Transaction B box; "requiry" → "require";
+  "writing for" → "waiting for"
+- Concurrency Conflicts — Interactive: `renderStep()` switched from `.textContent`
+  to `.innerHTML` so em-dash entities render correctly in narrative text
+- Concurrency Conflicts — Reference: "Telss" → "Tells"; `WHILE` condition
+  restored (`AND @success = 0` was corrupted to stray tokens); `12ß5` → `1205`
+  in intro text
+- Concurrency Conflicts — JS data array: "noch blocked" → "now blocked";
+  "consitent" → "consistent"; "must not catch" → "must now catch";
+  "Customes" → "Customers"
+- Performance Basics — Explainer: "rund" → "run"; "instead on" → "instead of
+  an index on"; "unter" → "under"; "the revisit" → "then revisit"
+- Performance Basics — Interactive: `class="sime-explanation"` typo corrected
+  to `class="sim-explanation"` (explanation panel styling was silently absent
+  on all simulator states); `INSERT INTO,` stray comma removed from three
+  code array entries; "transcription scope" → "transaction scope";
+  "nuder Serializable" → "under Serializable"; missing VALUES arguments
+  restored in `ser-yes-wide` entry; missing semicolon added after WHERE clause
+  in `ser-yes-wide` code block
+- Performance Basics — Reference: `</spand>` corrected to `</span>` on
+  Serializable and Snapshot blocking risk pills; `pill-safe` corrected to
+  `pill-warn` on Medium blocking risk row; "reliabel" → "reliable";
+  space before full stop removed in `blocking_session_id` cell
+
+
 ## [Session 12] — 2025-06-27
 
 ### Changed
@@ -464,11 +514,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ## Planned
 
-- **Carry the established Part B conventions from the HTML and style refactor
-  (indigo = Explainer, green = Interactive, dark navy/mono = code/reference) 
-  forward to Locks, Isolation Levels, Concurrency Conflicts and Performance Basics.
-- Audit other topic pages' interactive-tab result wrappers for the same
-  margin-collapse pattern fixed on `#acid-card`.
+### Planned (updated)
+- First entry (style conventions carry-forward) marked complete — all six
+  Intermediate chapter pages now use the unified design token system
 
 - **Beginner tier:** sequence to be drafted working sequentially
   from true beginnings. The "coming soon" placeholders added in Session 08 act as a
