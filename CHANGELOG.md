@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 ---
 
+## [Session 14] - 2026-07-02
+
+- Added: topics/beginner/what-sql-is/index.html — first Beginner tier topic, Explainer/
+  Interactive/Reference tabs, click-to-explore query anatomy widget
+  
+  Changed: nav.js — SIDEBAR_DATA beginner tier populated with the 9-topic sequence (1 live, 8 coming-soon); main.css — added .clause-pill, .hl-col, .hl-table-name; .detail-card p font-size bumped 12px → 13px (site-wide); .footer-hidden changed from max-height collapse to opacity-only, fixing the scroll jitter bug
+  
+  Fixed: circular layout dependency between footer auto-hide and main's scroll position (Concurrency Conflicts Interactive tab)
+
 ## [Session 13] — 2026-06-28
 
 ### Changed
