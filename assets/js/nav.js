@@ -18,9 +18,17 @@ const SIDEBAR_DATA = [
     {
         tier: "beginner",
         label: "Beginner",
+        category: "SQL Foundations",
         topics: [
-            {label: "Queries, Filtering & Joins", comingSoon: true}, 
-            {label: "Transformation & Views", comingSoon: true}, 
+            {id: "what-sql-is",             label: "What SQL IS & How a Query Runs",    path: "topics/beginner/what-sql-is/index.html" },
+            {label: "Filtering with WHERE", comingSoon: true}, 
+            {label: "Sorting Results", comingSoon: true}, 
+            {label: "Combining Tables with JOIN", comingSoon: true}, 
+            {label: "Aliases", comingSoon: true}, 
+            {label: "Transforming Data", comingSoon: true}, 
+            {label: "Summarizing Data", comingSoon: true}, 
+            {label: "Views", comingSoon: true}, 
+            {label: "Modifying Data", comingSoon: true},
         ]
     },
     {

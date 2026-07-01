@@ -1,6 +1,6 @@
 # SQL Field Guide
 
-A community-built reference for SQL learners who want clearer mental models
+A solo-built reference for SQL learners who want clearer mental models
 for the concepts that coursework and video tutorials tend to move past too
 quickly. This guide does not try to replace paid SQL courses — it fills the
 gaps they leave behind.
@@ -34,6 +34,11 @@ Every topic is organised into three sections:
 
 ## Current content
 
+### Beginner — SQL Foundations
+- [What SQL Is & How a Query Runs](topics/beginner/what-sql-is/index.html) — what a database and table are, how SELECT and FROM work, basic data types, and an interactive query anatomy explorer
+
+More Beginner topics (filtering, sorting, joins, aggregation, views, and data modification) are in active development.
+
 ### Intermediate — Transactions & Concurrency
 - [ACID Properties](topics/intermediate/acid-properties/index.html) — the four guarantees every transaction must satisfy, and why Isolation is the one with trade-offs
 - [Transactions](topics/intermediate/transactions/index.html) — BEGIN, COMMIT, ROLLBACK and SAVE TRANSACTION explained through the undo stack mental model, with a dialect comparison for learners coming from MySQL or standard SQL
@@ -43,8 +48,6 @@ Every topic is organised into three sections:
 - [Performance Basics](topics/intermediate/performance-basics/index.html) — what makes a query slow and why correct concurrency control has a performance cost, with an interactive query cost simulator covering isolation level, indexing, and transaction scope in an e-commerce flash-sale scenario
 
 This completes the Transactions & Concurrency chapter — six topics covering everything from the four ACID guarantees through to query performance under concurrent load.
-
-More topics are in development. See the [open issues](https://github.com/pokrhitman/sql-field-guide/issues) for what is planned and where contributions are most needed.
 
 ---
 

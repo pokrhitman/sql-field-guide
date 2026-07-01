@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>What SQL Is & How a Query Runs - SQL Field Guide</title>
+    <meta name ="description" content="A beginner's introduction to SQL: what a database and table are, how SELECT and FROM work, and the basic data types every column has" />
+    <meta name = "keywords" content ="SQL, SQL Server, T-SQL, beginner, SELECT, FROM, data types" />
+    <link rel = "canonical" href="https://pokrhitman.github.io/sql-field-guide/topics/beginner/what-sql-is/index.html" />
+    <meta property = "og:type"          content="article"/>
+    <meta property = "og:title"         content="What SQL Is & How a Query Runs - SQL Field Guide"/>
+    <meta property = "og:description"   content="The starting point for SQL beginners: databases, tables, SELECT, FROM and basic data types, explained with an interactive example ."/>
+    <meta property = "og:url"           content="https://pokrhitman/github.io/sql-field-guide/topics/beginner/what-sql-is/index.html" />
+    <link rel = "stylesheet" href = "../../../assets/css/main.css" />
+    <script>
+        const SITE_ROOT = "../../../";
+        const CURRENT_PAGE = "what-sql-is";
+    </script>
+</head>
+<body>
+
+        <!--- Header --->
+    <header>
+        <h1>SQL Field Guide</h1>
+        <a href="../../../index.html" style="margin-left: 24px;">&#8592; Home</a>
+    </header>
+
+    <div class="layout">
+
+        <!--- Sidebar (poulated by nav.js) --->
+        <nav id="sidebar"></nav>
+    
+        <!---Main content -->
+        <main>
+
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="../../../index.html">Home</a> &rsaquo;
+                Beginner &rsaquo;
+                SQL Foundations &rsaquo;
+                What SQL is &amp; How a Query Runs
+            </div>
+            
+            <h2>What SQL Is &amp; How a Query Runs</h2>
+
+            <div class="prereq">
+                <strong>Before this topic:</strong> nothing &mdash; this is the starting 
+                point for the Beginner tier. No prior SQL knowledge required.
+            </div>
+
+            <!-- Tab switcher -->
+            <div class="tabs" role="tablist" aria-label="Topic sections">
+                <button class="tab-btn active"  role="tab" id="tab-explainer"    aria-selected="true"   aria-controls="panel-explainer"   onclick="switchTab('explainer', event)">Explainer</button>
+                <button class="tab-btn"         role="tab" id="tab-interactive"  aria-selected="false"  aria-controls="panel-interactive" onclick="switchTab('interactive', event)">Interactive</button>
+                <button class="tab-btn"         role="tab" id="tab-reference"    aria-selected="false"  aria-controls="panel-reference"   onclick="switchTab('reference', event)">Reference</button>
+            </div>
+
+            <!-- Explainer Tab -->
+            <div class="tab-panel active" id="panel-explainer" role="tabpanel" aria-labelledby="tab-explainer">
+
+                <p>A database is a collection of <strong>tables</strong> and a table is just
+                a structured list &mdash; think of a well-organized spreadsheet. Each row is 
+                one record; each column is one property that record has.</p>
+
+                <div class="concept-block">
+                    <h4>A query is a sentence with a strict grammar</h4>
+                    <p><code>SELECT</code> says which columns you want to see.
+                    <code>FROM</code> says which table to look in. Every query you write 
+                    in this Beginner tier builds on just those two ideas, plus a few more 
+                    clauses you'll meet on the next few pages.</p>
+                </div>
+
+                <div class="keyword-card">
+                    <h4>SELECT</h4>
+                    <p>Lists exactly which columns you want back. Leave one out, and it 
+                    simply won't appear in your results &mdash; nothing is selected by 
+                    default.</p>
+                </div>
+
+                <div class="keyword-card">
+                    <h4>FROM</h4>
+                    <p>Tells SQL which table to look in. Every query needs exactly one 
+                    starting table (you'll combine more than one with <code>JOIN</code>
+                    later.)</p>
+                </div>
+
+                <div class="notice">
+                    SQL is <em>written</em> <code>SELECT...FROM...</code> , but the engine 
+                    actually works it out the other way around &mdash; it figures out which 
+                    table you're using (<code>FROM</code>) before it even looks at what you 
+                    asked to see (<code>SELECT</code>). It won't matter much yet, but once 
+                    you've learned <code>WHERE</code> and <code>GROUP BY</code>, this 
+                    processing order explains a few things that otherwise feel backwards.
+                </div>
+
+                <h3>Every column has a type</h3>
+                <p>SQL Server enforeces a data type on every column and it affects how 
+                you can query it later &mdash; comparing text to a number, or running a 
+                data function on a text column, are common early mistakes.</p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Type</th><th>Holds</th><th>Why it matters</th></tr>
+                    </thead>
+                        <tbody>
+                            <tr><td><code>INT</code></td><td>Whole numbers</td><td>You can do math on it</td></tr>
+                            <tr><td><code>VARCHAR</code></td><td>Text</td><td>Needs quotes in a query; no math</td></tr>
+                            <tr><td><code>DATE</code></td><td>Calendar dates</td><td>Compares chronologically, not alphabetically</td></tr>
+                            <tr><td><code>DECIMAL</code></td><td>Precise numbers with fixed decimal places</td><td>Used for money &mdash; avoids the rounding errors <code>FLOAT</code> can introduce</td></tr>
+                        </tbody>
+                </table>
+
+                <h3>A running example</h3>
+                <p>Most Beginner topics use the small dataset: a coffee shop's 
+                order log. It's simple enough to hold in your head and it touches
+                every data type above.</p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr><th>order_id</th><th>customer_name</th><th>item</th><th>price</th><th>order_date</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>Mia</td><td>Latte</td><td>4.50</td><td>2026-06-01</td></tr>
+                        <tr><td>2</td><td>Sam</td><td>Espresso</td><td>3.00</td><td>2026-06-01</td></tr>
+                        <tr><td>3</td><td>Mia</td><td>Croissant</td><td>3.25</td><td>2026-06-02</td></tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <!-- Interactive Tab -->
+            <div class="tab-panel" id="panel-interactive" role="tabpanel" aria-labelledby="tab-interactive">
+
+                <p class="tab-intro">Click a clause below to see what it does to the query 
+                against the <code id="table-name-label">orders</code> table.</p>
+
+                <div class="query-anatomy" role="group" aria-label="Select a query clause to explore">
+                    <button type="button" class="clause-pill" id="clause-select" onclick="selectClause('select')" aria-pressed="true">SELECT customer_name, item</button>
+                    <button type="button" class="clause-pill" id="clause-from" onclick="selectClause('from')" aria-pressed="false">FROM orders</button>
+                    <span class="clause-pill disabled" aria-disabled="true">WHERE &hellip; (coming soon)</span>
+                    <span class="clause-pill disabled" aria-disabled="true">ORDER BY &hellip; (coming soon)</span>
+                </div>
+
+                <div class="detail-card" id="clause-detail" aria-live="polite">
+                    <!-- filled by selectClause() on load-->
+                </div>
+
+                <table class="data-table" id="anatomy-table">
+                    <thead>
+                        <tr><th id="th-name">customer_name</th><th id="th-item">item</th><th>price</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Mia</td><td>Latte</td><td>4.50</td></tr>
+                        <tr><td>Sam</td><td>Espresso</td><td>3.00</td></tr>
+                        <tr><td>Mia</td><td>Croissant</td><td>3.25</td></tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <!-- Reference tab -->
+            <div class="tab-panel" id="panel-reference" role="tabpanel" aria-labelledby="tab-reference">
+
+                <div class="ref-card">
+                    <h4>Basic query shape</h4>
+                    <code>SELECT column1, column2<br>FROM table_name;</code>
+                    <p>Column order in <code class="code-inline">SELECT</code>determines
+                    column order in the result &mdash; it doesn't have to match the 
+                    table's actual column order.</p>
+                </div>
+
+                <div class="ref-card">
+                    <h4>Select every column</h4>
+                    <code>SELECT * FROM table_name;</code>
+                    <p>Useful for quick exploration. Avoid it in real application code 
+                    &mdash; naming columns explicitly is safer if the table's structure 
+                    changes later.</p>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Type</th><th>Example value</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>INT</code></td><td><code>42</code></td></tr>
+                        <tr><td><code>VARCHAR</code></td><td><code>'Mia'</code></td></tr>
+                        <tr><td><code>DATE</code></td><td><code>'2026-06-01'</code></td></tr>
+                        <tr><td><code>DECIMAL(5,2)</code></td><td><code>4.50</code></td></tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </main>>
+    </div>
+
+    <!-- Site footer (populated by footer.js) -->
+    <footer id="site-footer"></footer>
+
+    <script src="../../../assets/js/nav.js"></script>
+    <script src="../../../assets/js/footer.js"></script>
+    <script src="../../../assets/js/tabs.js"></script>
+    <script>
+        const queryClauses = {
+            select: {
+                label: "SELECT - choose your columns",
+                explanation: "SELECT lists exactly which columns you want back. Leave one out and it simply won't appear in your results.",
+                highlight: "columns"
+            },
+            from: {
+                label: "FROM - choose your table",
+                explanation: "FROM tells SQL which table to look in. The engine actually resolves this one first, before it even looks at your SELECT list.",
+                highlight: "table"
+            }
+        };
+
+        function selectClause(id) {
+            document.getElementById('clause-select').classList.toggle('active', id === 'select');
+            document.getElementById('clause-select').setAttribute('aria-pressed', id === 'select');
+            document.getElementById('clause-from').classList.toggle('active', id === 'from');
+            document.getElementById('clause-from').setAttribute('aria-pressed', id === 'from');
+
+            const data = queryClauses[id];
+            document.getElementById('clause-detail').innerHTML = 
+            `<h4>${data.label}</h4><p>${data.explanation}</p>`;
+
+            document.getElementById('th-name').classList.remove('hl-col');
+            document.getElementById('th-item').classList.remove('hl-col');
+            document.querySelectorAll('#anatomy-table td:nth-child(1), #anatomy-table td:nth-child(2)').forEach(td => td.classList.remove('hl-col'));
+            document.getElementById('table-name-label').classList.remove('hl-table-name');
+
+            if (data.highlight === 'columns') {
+                document.getElementById('th-name').classList.add('hl-col');
+                document.getElementById('th-item').classList.add('hl-col');
+                document.querySelectorAll('#anatomy-table td:nth-child(1), #anatomy-table td:nth-child(2)').forEach(td => td.classList.add('hl-col'));
+            } else if (data.highlight === 'table') {
+                document.getElementById('table-name-label').classList.add('hl-table-name');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => selectClause('select'));
+    </script>
+
+</body>
+</html>

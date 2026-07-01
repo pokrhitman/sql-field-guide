@@ -457,7 +457,7 @@ main p  {
     display: block;
     margin-bottom: 10px;
 }
-.detail-card p { font-size: 12px; margin-bottom: 10px; }
+.detail-card p { font-size: 13px; margin-bottom: 10px; }
 
 /* -- Stat readout (live account balances) -- */
 .stat-grid {
@@ -722,10 +722,8 @@ footer {
     transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
 }
 footer.footer-hidden {
-    max-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
     opacity: 0;
+    pointer-events: none;
 }
 footer p {
     max-width: 760px;
@@ -769,4 +767,44 @@ footer a:hover { text-decoration: underline; }
     padding: 1px 5px;
     border-radius: 3px;
     font-size: 12px;
+}
+
+/*-- Query anatomy widget (Beginner Interactive tab) -- */
+.query-anatomy {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.clause-pill {
+    font-family: var(--mono-font);
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.clause-pill:hover { background: #e0e0e0; }
+.clause-pill.active {
+    background: #e8eaf6;
+    border-color: var(--accent-indigo);
+    color: var(--navy-deep);
+    font-weight: 600;
+}
+.clause-pill.disabled:hover { background: #f0f0f0; }
+
+/*-- Highlight states (reused where the shared live-table patterns needs them) --*/
+.hl-col {
+    background: #f0f4ff !important;
+    color: var(--navy-deep);
+    font-weight: 600;
+}
+.hl-table-name {
+    background: #f0f4ff;
+    color: var(--navy-deep);
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
 }
